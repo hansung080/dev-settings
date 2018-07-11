@@ -1,0 +1,58 @@
+###### ubuntu commands ######
+
+# shutdown
+$ sudo init 0
+$ sudo shutdown -h now
+$ sudo halt
+
+# reboot
+$ sudo init 6
+$ sudo shutdown -r now
+$ sudo reboot
+
+# basic apt commands
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install <package>
+$ sudo apt-get autoremove <package>
+
+# vm-tools install (Check if it's already installed.)
+$ sudo apt-get install open-vm-tools-desktop
+
+# vim install
+$ sudo apt-get install vim
+
+# ibus install
+$ sudo apt-get install ibus
+$ sudo apt-get install ibus-hangul
+System Settings -> Language Support -> Keyboard input method system : IBus
+ibus-setup (command) -> Input Method -> Add -> Korean-Hangul -> Preferences
+        Hangul keyboard      : Dubeolsik
+        Start in hangul mode : checked
+        Commit in word unit  : unchecked
+        Automatic recording  : checked
+System Settings -> Text Entry -> + -> Korean (Hangul) (IBus)
+        Switch to next source using     : Shift+Space
+        Switch to previous source using : Shift+Super+Space
+
+# ssh install
+$ sudo apt-get install openssh-server
+$ sudo apt-get install openssh-client
+
+# samba install
+$ sudo apt-get install samba
+$ sudo vi /etc/samba/smb.conf
+          [hansung]
+          comment = samba directory
+          path = /home/hansung/work/samba
+          valid users = hansung
+          public = yes
+          writable = yes
+$ sudo smbpasswd -a hansung
+$ sudo service smbd restart
+
+# git install
+$ sudo apt-get install git
+$ git config --global user.name "hansung"
+$ git config --global user.email "hansung080@hanmail.net"
+$ git config --global alias.nffmerge "merge --no-ff"

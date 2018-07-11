@@ -1,0 +1,73 @@
+###### git commands ######
+
+# basic config
+$ git config --global user.name "hansung"
+$ git config --global user.email "hansung080@hanmail.net"
+$ git config --global alias.nffmerge "merge --no-ff"
+
+# basic commands
+$ git init # create a new repository.
+$ git status # show status of a repository.
+$ git add <file> # add <file> to a repository.
+$ git rm --cached <file> # remove <file> from a repository.
+$ git rm -r --cached <dir> # remove <dir> from a repository.
+$ git commit -m "message" # commit changes to a repository with message.
+$ git commit -am "message" # commit all changes to a repository with message.
+$ git checkout -- <file> # recover <file> to a repository.
+$ git branch # show branches.
+$ git branch -a # show all branches.
+$ git branch <branch> # create a new <branch>.
+$ git checkout <branch> # switch a working <branch>.
+$ git checkout -b <branch> # create a new <branch> and switch a working <branch>.
+$ git merge <branch> # merge a current branch with <branch>.
+$ git merge --no-ff <branch> # merge a current branch with <branch> with the no fast-forward option.
+$ git nffmerge <branch> # merge a current branch with <branch> with the no fast-forward option.
+
+# log commands
+$ git log -p # show changes of each commits.
+$ git log --word-diff : show differences by words.
+$ git log --stat # show statistics of changed files.
+$ git log --name-only # show names of changed files.
+$ git log --relative-date : # show relative date of changed files.
+$ git log --graph # show graph of branches.
+
+# remote commands.
+$ git clone <url> # copy a remote repository identified by <url> to a local repository.
+$ git remote add origin <url> # connect a local repository to a remote repository identified by <url> and nickname it origin.
+$ git remote -v # show connection between a local repository and a remote repository.
+$ git push origin <branch> # push commits of <branch> to origin.
+$ git push origin --all # push commits of all branches to origin.
+$ git push -u origin <branch> # push commits of <branch> to origin, when <branch> of origin dose not exists.
+$ git push --set-upstream origin <branch> # push commits of <branch> to origin, when <branch> of origin dose not exists.
+$ git pull origin <branch> # pull commits of origin to <branch>. (pull = fetch + merge)
+$ git fetch # fetch commits of origin to branches. (No merge. Use <git merge origin/branch> command to merge after fetch)
+$ git diff <branch> # show differences between <branch> and origin/<branch>.
+
+# delete commands
+$ git branch -d <branch> # delete <branch> of a local repository.
+$ git branch --delete <branch> # delete <branch> of a local repository.
+$ git branch -D <branch> # delete <branch> of a local repository.
+$ git push origin :<branch> # delete <branch> of a remote repository.
+$ git push origin --delete <branch> # delete <branch> of a remote repository.
+$ git remote prune origin # clean up branches of a remote repository.
+
+# how to handle failure of push
+1. $ git push origin master -> [rejected]
+2. $ git fetch
+3. $ git merge origin/master -> CONFLICT
+4. $ git diff master
+5. modify CONFLICT
+6. $ git push origin master
+
+# hotfix and tagging
+1. $ git checkout -b hotfix master # git branch hotfix and git checkout hotfix
+2. $ git add .
+3. $ git commit -m "message"
+4. $ git push -u origin hotfix # git push origin hotfix and git branch --set-upstream-to=origin/hotfix hotfix
+5. $ git checkout master
+6. $ git merge --no-ff hotfix
+7. $ git push origin master
+8. $ git tag -a v1.0.0
+9. $ git push origin v1.0.0
+10. $ git branch -d hotfix # git branch --delete hotfix or git branch -D hotfix
+11. $ git push origin :hotfix # git push origin --delete hotfix

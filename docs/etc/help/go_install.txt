@@ -1,0 +1,27 @@
+###### go install ######
+
+# download web page
+https://golang.org/dl/
+
+# set environment variables
+GOROOT -> C:\Go
+GOPATH -> C:\work\ws\go
+GOBIN -> C:\work\ws\go\bin
+Path -> ;C:\Go\bin;C:\work\ws\go\bin;C:\Program Files\Git\cmd
+
+# check version
+$ go version
+
+# check environment variables
+$ go env
+
+# get command tools
+$ go get golang.org/x/tools/cmd/...
+
+# test sample code
+create github.com/hansung080/hello/hello.go or local/hello/hello.go
+$ goimports -w hello.go
+$ gofmt -w hello.go
+$ go run hello.go
+$ go build github.com/hansung080/hello
+$ go install github.com/hansung080/hello

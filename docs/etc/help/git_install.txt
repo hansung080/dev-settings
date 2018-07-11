@@ -1,0 +1,56 @@
+###### git install for windows ######
+
+### install git ###
+# Select Destination Location
+-> C:\Program Files\Git
+
+# Select Components
+-> as-is
+
+# Select Start Menu Folder
+-> Git
+
+# Choosing the default editor used by Git
+-> Use Vim (the ubiquitous text editor) as Git's default editor
+
+# Adjusting your PATH environment
+-> Use Git from Git Bash only
+
+# Choosing HTTPS transport backend
+-> Use the OpenSSL library
+
+# Configuring the line ending conversions
+-> Checkout Windows-style, commit Unix-style line endings
+
+# Configuring the terminal emulator to use with Git Bash
+-> Use MinTTY (the default terminal of MSYS2)
+
+# Configuring extra options
+-> Enable file system caching
+-> Enable Git Credential Manager
+
+### set up git config ###
+# set Path (optional, go requires git to set Path)
+Path -> ;C:\Program Files\Git\cmd
+
+# check version
+$ git version
+
+# create '.khs' config file (execute git-bash as admin)
+$ vi .khs
+--------------------------------------------------
+# .khs
+
+alias ll='ls -alF'
+alias work='cd /c/work'
+alias ws='cd /c/work/ws'
+
+export PS1='[`whoami`@git]:`pwd`$ '
+
+echo '.khs'
+--------------------------------------------------
+
+# set git config
+$ git config --global user.name "hansung"
+$ git config --global user.email "hansung080@hanmail.net"
+$ git config --global alias.nffmerge "merge --no-ff"
