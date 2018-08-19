@@ -1,0 +1,17 @@
+###### mac commands ######
+
+# homebrew
+$ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# update and upgrade
+$ brew update
+$ brew upgrade
+
+# essential packages
+$ brew install autoconf automake autogen libtool shtool gettext
+
+# wget
+$ brew install wget
+
+# xcode-select
+$ sudo xcode-select --install
