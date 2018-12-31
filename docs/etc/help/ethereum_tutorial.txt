@@ -1,0 +1,177 @@
+###### ethereum tutorial ######
+
+### geth install for mac ###
+# install brew
+$ /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# install go
+refer to go_install.txt
+
+# install geth (choose 1 from 3 ways)
+download from https://geth.ethereum.org/downloads or https://ethereum.github.io/go-ethereum/downloads/
+$ git clone https://github.com/ethereum/go-ethereum.git
+$ go get github.com/ethereum/go-ethereum
+
+# build geth (choose 1 from 2 ways)
+$ make geth
+$ make all
+
+### geth install for ubuntu ###
+$ sudo apt-get install software-properties-common
+$ sudo add-apt-repository -y ppa:ethereum/ethereum
+$ sudo apt-get update
+$ sudo apt-get install ethereum
+
+### geth start ###
+# check geth command line options
+check from https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options
+$ geth --help
+
+# start geth
+$ geth
+
+$ geth console
+> exit
+
+$ geth console 2 >> /dev/null
+> exit
+
+$ geth attach [ipc:/some/custom/path | rpc:http://127.0.0.1:8545]
+> exit
+
+$ geth js demo.js 2 >> tmp.log
+> exit
+
+$ mkdir private-data
+$ geth --rpc --rpcport "8545" --rpccorsdomain "*" --datadir "private-data" --port "30303" --nodiscover --rpcapi "db,eth,net,web3" --networkid 15 console
+> exit
+
+### geth practice ###
+# send ether from Jay to Sujie
+$ geth --dev --datadir "private-data" console
+> eth.accounts
+> eth.blockNumber
+> personal.newAccount("Jay")
+> eth.accounts
+> miner.setEtherbase(eth.accounts[0])
+> personal.newAccount("Sujie")
+> eth.accounts
+> eth.getBalance(eth.accounts[0])
+> eth.getBalance(eth.accounts[1])
+> miner.start(1)
+> eth.mining
+> eth.hashrate
+> eth.blockNumber
+> miner.stop()
+> eth.getBalance(eth.coinbase)
+> eth.getBalance(eth.account[0])
+> web3.fromWei(eth.getBalance(eth.account[0]), "ether")
+> a0 = eth.accounts[0]
+> a1 = eth.accounts[1]
+> eth.sendTransaction({from: a0, to: a1, value: web3.toWei(1, 'ether'), gasLimit: 30400, gasPrice: 10000000000000})
+> personal.unlockAccount(a0)
+> eth.sendTransaction({from: a0, to: a1, value: web3.toWei(1, 'ether'), gasLimit: 21000, gasPrice: 20000000000})
+> eth.getBalance(a1)
+> txpool.content
+> txpool.status
+> txpool.inspect
+> eth.pendingTransactions
+> miner.start()
+> miner.stop()
+> eth.pendingTransactions
+> eth.getBalance(a1)
+> eth.getBalance(a0)
+> exit
+
+### ethereum network connection ###
+# connect to main network
+$ geth --fast --cache 1024 console
+
+# connect to test network (Ropsten)
+$ geth --testnet --fast --cache 512 console
+$ geth --networkid 3 --fast --cache 512 console
+
+# connect to test network (Rinkeby)
+$ geth --rinkeby --fast --cache 512 console
+$ geth --networkid 4 --fast --cache 512 console
+
+# connect to private network (Solo Network)
+$ geth --dev --fast --cache 512 console
+
+### private network practice ###
+# create private network
+create genesis.json
+{
+  "config": {
+    "chainId": 15,
+    "homesteadBlock": 0,
+    "eip155Block": 0,
+    "eip158Block": 0
+  },
+  "difficulty": "200000000",
+  "gasLimit": "3100000",
+  "alloc": {
+  }
+}
+
+$ mkdir private-data
+$ geth --datadir "private-data" init genesis.json
+$ geth --datadir "private-data" --networkid 15 console
+> personal.newAccount()
+"0xd24b59da572181a5dd81a09bd07f83940528e9bd"
+> personal.newAccount()
+"0x4f6883c22997d0ba069103f693401ea161efd112"
+> exit
+
+modify genesis.json
+{
+  "alloc": {
+    "0xd24b59da572181a5dd81a09bd07f83940528e9bd": {
+      "balance": "300000000000000000000"
+    },
+    "0x4f6883c22997d0ba069103f693401ea161efd112": {
+      "balance": "400000000000000000000"
+    }
+  }
+}
+
+$ cd private-data
+$ rm -rf `ls | grep -v keystore`
+$ cd ..
+$ geth --datadir "private-data" init genesis.json
+$ geth --datadir "private-data" --networkid 15 console
+> web3.fromWei(eth.getBalance(eth.accounts[0]), "ether")
+300
+> web3.fromWei(eth.getBalance(eth.accounts[1]), "ether")
+400
+> exit
+
+# multi-node practice in private network
+node 1 (boot node)
+$ geth --datadir "private-data" init genesis.json
+$ geth --datadir "private-data" --networkid 15 console
+> admin.nodeInfo.enode
+"enode://6b13ed67aadc603166ab4ef0c95d0df660afef7cc645d6751434ca058295b39af226d40a7507ecb60126831e400abe9e1789c806cd4a9e512965ce6fbefe6dbb@218.145.198.227:30303?discport=21100"
+
+node 2 (normal node)
+$ geth --datadir "private-data" init genesis.json
+$ geth --datadir "private-data" --networkid 15 console
+> admin.addPeer("enode://6b13ed67aadc603166ab4ef0c95d0df660afef7cc645d6751434ca058295b39af226d40a7507ecb60126831e400abe9e1789c806cd4a9e512965ce6fbefe6dbb@218.145.198.227:30303?discport=21100")
+
+node 3 (miner node)
+$ geth --datadir "private-data" init genesis.json
+$ geth --datadir "private-data" --networkid 15 console
+> admin.addPeer("enode://6b13ed67aadc603166ab4ef0c95d0df660afef7cc645d6751434ca058295b39af226d40a7507ecb60126831e400abe9e1789c806cd4a9e512965ce6fbefe6dbb@218.145.198.227:30303?discport=21100")
+> personal.newAccount()
+"0x3d5132ffef0eec2756d8ba94c027ae9186fd71cc"
+> miner.setEtherbase(eth.accounts[0])
+> eth.coinbase
+> miner.start(1)
+
+node 1 (boot node)
+> net.peerCount
+2
+> admin.peers
+> eth.sendTransaction({from: eth.coinbase, to: "0x3d5132ffef0eec2756d8ba94c027ae9186fd71cc", value: web3.toWei(1, "ether")})
+> eth.blockNumber
+3
