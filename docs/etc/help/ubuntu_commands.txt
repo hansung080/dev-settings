@@ -56,3 +56,10 @@ $ sudo apt-get install git
 $ git config --global user.name "hansung"
 $ git config --global user.email "hansung080@hanmail.net"
 $ git config --global alias.nffmerge "merge --no-ff"
+
+# net-utils install
+$ sudo apt-get install net-utils
+
+# build tools install
+$ sudo apt-get install build-essential pkg-config autoconf automake libtool
+$ sudo apt-get install autotools-dev libtools-all-dev libssl-dev libevent-dev bsdmainutils
