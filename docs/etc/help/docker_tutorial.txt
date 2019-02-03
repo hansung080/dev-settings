@@ -1,0 +1,46 @@
+###### docker tutorial ######
+
+### docker install ###
+# requirement
+1. Kernel version need to be equal or higher than 3.10.
+2. Linux distribution need to be supportable.
+3. Linux need to be 64-bit.
+4. Installation requires root permission.
+
+$ uname -a
+Linux ubuntu64 4.15.0-43-generic #46-Ubuntu SMP Thu Dec 6 14:45:28 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
+
+$ uname -r
+4.15.0-43-generic
+
+$ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+$ sudo apt-get update
+$ sudo apt-get install docker-ce
+
+# installation error
+hansung@ubuntu64:~/work/install/docker$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+Err:1 https://downlaod.docker.com/linux/ubuntu bionic InRelease
+  Could not resolve 'downlaod.docker.com'
+Hit:2 https://download.docker.com/linux/ubuntu bionic InRelease                                                               
+Hit:3 http://kr.archive.ubuntu.com/ubuntu bionic InRelease                                                                    
+Get:4 http://kr.archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]                                                          
+Get:5 http://kr.archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]                                                        
+Get:6 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [512 kB]                           
+Get:7 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]       
+Get:8 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main i386 Packages [446 kB]
+Get:9 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main amd64 DEP-11 Metadata [278 kB]
+Get:10 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main DEP-11 48x48 Icons [66.7 kB]                       
+Get:11 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main DEP-11 64x64 Icons [123 kB]                        
+Get:12 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe i386 Packages [716 kB]              
+Get:13 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [724 kB]         
+Get:14 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe amd64 DEP-11 Metadata [202 kB]
+Get:15 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe DEP-11 48x48 Icons [190 kB]
+Get:16 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe DEP-11 64x64 Icons [350 kB]
+Get:17 http://kr.archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 DEP-11 Metadata [2,464 B]
+Get:18 http://kr.archive.ubuntu.com/ubuntu bionic-backports/universe amd64 DEP-11 Metadata [7,344 B]
+Fetched 3,869 kB in 2s (2,214 kB/s)                                                            
+Reading package lists... Done
+W: Failed to fetch https://downlaod.docker.com/linux/ubuntu/dists/bionic/InRelease  Could not resolve 'downlaod.docker.com'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+hansung@ubuntu64:~/work/install/docker$
