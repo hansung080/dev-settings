@@ -1,0 +1,32 @@
+###### grpc install ######
+
+### grpc install: cpp ###
+# reference site
+https://grpc.io/docs/quickstart/cpp.html
+https://github.com/grpc/grpc/blob/master/BUILDING.md
+
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install build-essential autoconf libtool pkg-config
+$ sudo apt-get install libgflags-dev libgtest-dev
+$ sudo apt-get install clang libc++-dev
+$ curl -L https://grpc.io/release
+v1.18.0
+$ git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc
+$ cd grpc
+$ git submodule update --init
+$ make
+$ sudo make install
+$ cd third_party/protobuf
+$ make
+$ sudo make install
+
+### grpc install: go ###
+# reference site
+https://grpc.io/docs/quickstart/go.html
+
+$ go get -u google.golang.org/grpc
+$ go get -u github.com/golang/protobuf/protoc-gen-go
+$ protoc -I helloworld/ helloworld/helloworld.proto --go_out=plugins=grpc:helloworld
+$ protoc -I . ./chaincode_shim.proto --go_out=plugins=grpc:.
+
