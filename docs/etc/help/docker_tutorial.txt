@@ -1,46 +1,92 @@
 ###### docker tutorial ######
 
-### docker install ###
-# requirement
+### docker engine install ###
+## requirements
 1. Kernel version need to be equal or higher than 3.10.
 2. Linux distribution need to be supportable.
 3. Linux need to be 64-bit.
 4. Installation requires root permission.
 
 $ uname -a
-Linux ubuntu64 4.15.0-43-generic #46-Ubuntu SMP Thu Dec 6 14:45:28 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux
+Linux ubuntu64 4.15.0-48-generic #51-Ubuntu SMP Wed Apr 3 08:28:49 UTC 2019 x86_64 x86_64 x86_64 GNU/Linux
 
 $ uname -r
-4.15.0-43-generic
+4.15.0-48-generic
 
 $ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 $ sudo apt-get update
 $ sudo apt-get install docker-ce
 
-# installation error
-hansung@ubuntu64:~/work/install/docker$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-Err:1 https://downlaod.docker.com/linux/ubuntu bionic InRelease
-  Could not resolve 'downlaod.docker.com'
-Hit:2 https://download.docker.com/linux/ubuntu bionic InRelease                                                               
-Hit:3 http://kr.archive.ubuntu.com/ubuntu bionic InRelease                                                                    
-Get:4 http://kr.archive.ubuntu.com/ubuntu bionic-updates InRelease [88.7 kB]                                                          
-Get:5 http://kr.archive.ubuntu.com/ubuntu bionic-backports InRelease [74.6 kB]                                                        
-Get:6 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main amd64 Packages [512 kB]                           
-Get:7 http://security.ubuntu.com/ubuntu bionic-security InRelease [88.7 kB]       
-Get:8 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main i386 Packages [446 kB]
-Get:9 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main amd64 DEP-11 Metadata [278 kB]
-Get:10 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main DEP-11 48x48 Icons [66.7 kB]                       
-Get:11 http://kr.archive.ubuntu.com/ubuntu bionic-updates/main DEP-11 64x64 Icons [123 kB]                        
-Get:12 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe i386 Packages [716 kB]              
-Get:13 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe amd64 Packages [724 kB]         
-Get:14 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe amd64 DEP-11 Metadata [202 kB]
-Get:15 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe DEP-11 48x48 Icons [190 kB]
-Get:16 http://kr.archive.ubuntu.com/ubuntu bionic-updates/universe DEP-11 64x64 Icons [350 kB]
-Get:17 http://kr.archive.ubuntu.com/ubuntu bionic-updates/multiverse amd64 DEP-11 Metadata [2,464 B]
-Get:18 http://kr.archive.ubuntu.com/ubuntu bionic-backports/universe amd64 DEP-11 Metadata [7,344 B]
-Fetched 3,869 kB in 2s (2,214 kB/s)                                                            
-Reading package lists... Done
-W: Failed to fetch https://downlaod.docker.com/linux/ubuntu/dists/bionic/InRelease  Could not resolve 'downlaod.docker.com'
-W: Some index files failed to download. They have been ignored, or old ones used instead.
-hansung@ubuntu64:~/work/install/docker$
+$ docker -v
+Docker version 18.09.5, build e8ff056
+
+$ sudo docker info
+
+### docker engine commands ###
+## create container
+$ sudo docker run -it ubuntu:14.04
+# exit OR Ctrl + D # exit with stopping container.
+# Ctrl + P + Q # exit without stopping container.
+$ sudo docker pull centos:7
+$ sudo docker create -it --name mycentos centos:7
+$ sudo docker start mycentos
+$ sudo docker attach mycentos
+$ sudo docker images
+
+## difference between run and create
+## - run: pull + create + start + attach # pull if the image does not exist and attach if -it options are used.
+## - create: pull + create # pull if the image does not exist.
+
+## list container
+$ sudo docker ps
+$ sudo docker ps -a
+$ sudo docker inspect mycentos | grep Id
+$ sudo docker container inspect mycentos | grep Id
+$ sudo docker run -it ubuntu:14.04 echo hello world! # override the image-embedded command with the CLI command.
+$ sudo docker rename angry_morse my_container
+$ sudo docker ps -a --format "table {{.ID}}\t{{.Status}}\t{{.Image}}\t{{.Names}}"
+
+## remove container
+$ sudo docker stop mycentos
+$ sudo docker rm mycentos
+$ sudo docker rm -f mycentos
+$ sudo docker container prune # This will remove all stopped containers.
+$ sudo docker stop `sudo docker ps -aq`
+$ sudo docker rm $(sudo docker ps -a -q)
+
+## expose container
+$ sudo docker run -it --name mywebserver -p 80:80 ubuntu:14.04 
+# apt-get update
+# apt-get install apache2 -y
+# service apache2 start
+$ sudo docker run -it -p 3306:3306 -p 192.168.0.15:7777:80 ubuntu:14.04
+
+## construct container application
+$ sudo docker run -it --name ubuntu_attach_test ubuntu:14.04
+# Ctrl + P + Q # exit without stopping container.
+$ sudo docker attach ubuntu_attach_test
+
+$ sudo docker run -d --name wordpressdb -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=wordpress mysql:5.7
+$ sudo docker exec -it wordpressdb /bin/bash
+# echo $MYSQL_ROOT_PASSWORD
+# mysql -u root -p
+# exit # exit without stopping container if docker exec has been used. only exit /bin/bash.
+$ sudo docker exec wordpressdb ls /
+
+$ sudo docker run -d --name wordpress -e WORDPRESS_DB_PASSWORD=password --link wordpressdb:mysql -p 80 wordpress
+$ sudo docker port wordpress
+$ sudo docker exec wordpress ping -c 2 mysql
+
+## docker volume
+$ sudo docker run -d --name wordpressdb_hostvolume -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=wordpress -v /home/hansung/work/docker/volumes/wordpress_db:/var/lib/mysql mysql:5.7
+$ sudo docker run -d --name wordpress_hostvolume -e WORDPRESS_DB_PASSWORD=password --link wordpressdb_hostvolume:mysql -p 80 wordpress
+$ ls -alF /home/hansung/work/docker/volumes/wordpress_db
+$ sudo docker stop wordpress_hostvolume wordpressdb_hostvolume
+$ sudo docker rm wordpress_hostvolume wordpressdb_hostvolume
+$ ls -alF /home/hansung/work/docker/volumes/wordpress_db
+
+$ sudo docker run -it --name volume_dummy alicek106/volume_test
+# ls -alF /home/testdir_2
+$ sudo docker run -it --name volume_override -v /home/hansung/work/docker/volumes/wordpress_db:/home/testdir_2 alicek106/volume_test
+# ls -alF /home/testdir_2
