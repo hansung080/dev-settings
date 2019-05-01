@@ -79,6 +79,7 @@ $ sudo docker port wordpress
 $ sudo docker exec wordpress ping -c 2 mysql
 
 ## docker volume
+## - host volume sharing
 $ sudo docker run -d --name wordpressdb_hostvolume -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=wordpress -v /home/hansung/work/docker/volumes/wordpress_db:/var/lib/mysql mysql:5.7
 $ sudo docker run -d --name wordpress_hostvolume -e WORDPRESS_DB_PASSWORD=password --link wordpressdb_hostvolume:mysql -p 80 wordpress
 $ ls -alF /home/hansung/work/docker/volumes/wordpress_db
@@ -90,3 +91,107 @@ $ sudo docker run -it --name volume_dummy alicek106/volume_test
 # ls -alF /home/testdir_2
 $ sudo docker run -it --name volume_override -v /home/hansung/work/docker/volumes/wordpress_db:/home/testdir_2 alicek106/volume_test
 # ls -alF /home/testdir_2
+
+## - volume container
+$ sudo docker run -it --name volumes_from_container --volumes-from volume_override ubuntu:14.04
+# ls -alF /home/testdir_2
+
+## - docker volume
+$ sudo docker volume create --name myvolume
+$ sudo docker volume ls
+$ sudo docker run -it --name myvolume_1 -v myvolume:/root ubuntu:14.04
+# echo hello, volume! >> /root/volume
+$ sudo docker run -it --name myvolume_2 -v myvolume:/root ubuntu:14.04
+# cat /root/volume
+hello, volume!
+$ sudo docker inspect myvolume
+$ sudo docker inspect --type volume myvolume
+$ sudo docker volume inspect myvolume
+$ sudo cat /var/lib/docker/volumes/myvolume/_data/volume
+hello, volume!
+$ sudo docker run -it --name volume_auto -v /root ubuntu:14.04
+$ sudo docker volume ls
+$ sudo docker container inspect volume_auto | grep Source
+$ sudo docker volume prune
+
+## docker network
+$ sudo apt-get install bridge-utils
+$ brctl show docker0
+$ sudo docker network ls
+$ sudo docker network inspect bridge
+
+## - bridge network
+$ sudo docker network create --driver bridge mybridge
+$ sudo docker run -it --name mynetwork_container --net mybridge ubuntu:14.04
+$ sudo docker network create --driver bridge --subnet=172.72.0.0/16 --ip-range=172.72.0.0/24 --gateway=172.72.0.1 my_custom_network
+
+## - host network
+$ sudo docker run -it --name network_host --net host ubuntu:14.04
+
+## - none network
+$ sudo docker run -it --name network_none --net none ubuntu:14.04
+
+## - container network
+$ sudo docker run -itd --name network_container_1 ubuntu:14.04
+$ sudo docker run -itd --name network_container_2 --net container:network_container_1 ubuntu:14.04
+$ sudo docker exec network_container_1 ifconfig
+$ sudo docker exec network_container_2 ifconfig
+
+## - bridge network and --net-alias
+$ sudo docker run -itd --name network_alias_container1 --net mybridge --net-alias alicek106 ubuntu:14.04
+$ sudo docker run -itd --name network_alias_container2 --net mybridge --net-alias alicek106 ubuntu:14.04
+$ sudo docker run -itd --name network_alias_container3 --net mybridge --net-alias alicek106 ubuntu:14.04
+$ sudo docker inspect network_alias_container1 | grep IPAddress
+$ sudo docker inspect network_alias_container2 | grep IPAddress
+$ sudo docker inspect network_alias_container3 | grep IPAddress
+$ sudo docker run -it --name network_alias_ping --net mybridge ubuntu:14.04
+# ping -c 1 alicek106
+# ping -c 1 alicek106
+# ping -c 1 alicek106
+# apt-get update
+# apt-get install dnsutils
+# dig alicek106
+
+## container logging
+## - json-file logging
+$ sudo docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=1234 mysql:5.7
+$ sudo docker logs mysql
+$ sudo docker run -d --name no_passwd_mysql mysql:5.7
+$ sudo docker ps -a --format "table {{.ID}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+$ sudo docker logs no_passwd_mysql
+$ sudo docker logs --tail 2 mysql
+$ sudo docker logs --since 1474765979 mysql
+$ sudo docker logs -f -t mysql
+$ sudo docker run -it --name logstest ubuntu:14.04
+# echo test!
+$ sudo docker logs logstest
+$ sudo cat /var/lib/docker/containers/${CONTAINER_ID}/${CONTAINER_ID}-json.log
+
+## - syslog logging
+$ sudo docker run -d --name syslog_container --log-driver=syslog ubuntu:14.04 echo syslogtest
+$ tail /var/log/syslog # for ubuntu 14.04
+$ journalctl -u docker.service # for ubuntu 16.04
+
+$ sudo docker run -it --name rsyslog_server -h rsyslog -p 514:514 -p 514:514/udp ubuntu:14.04
+# vi /etc/rsyslog.conf
+--------------------------------------------------
+# provides UDP syslog reception
+$ModLoad imudp
+$UDPServerRun 514
+
+# provides TCP syslog reception
+$ModLoad imtcp
+$InputTCPServerRun 514
+--------------------------------------------------
+# service rsyslog restart
+$ sudo docker run -it --name rsyslog_client --log-driver=syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="mylog" ubuntu:14.04
+# echo test
+$ sudo docker attach rsyslog_server
+# tail /var/log/syslog
+
+$ sudo docker run -it --name rsyslog_client_facility --log-driver=syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="maillog" --log-opt syslog-facility="mail" ubuntu:14.04
+# echo facility test
+$ sudo docker attach rsyslog_server
+# tail /var/log/mail.log
+
+## - fluentd logging
