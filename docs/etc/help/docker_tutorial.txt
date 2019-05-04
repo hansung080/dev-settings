@@ -45,7 +45,7 @@ $ sudo docker inspect mycentos | grep Id
 $ sudo docker container inspect mycentos | grep Id
 $ sudo docker run -it ubuntu:14.04 echo hello world! # override the image-embedded command with the CLI command.
 $ sudo docker rename angry_morse my_container
-$ sudo docker ps -a --format "table {{.ID}}\t{{.Status}}\t{{.Image}}\t{{.Names}}"
+$ sudo docker ps -a --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}"
 
 ## remove container
 $ sudo docker stop mycentos
@@ -123,7 +123,7 @@ $ sudo docker network inspect bridge
 ## - bridge network
 $ sudo docker network create --driver bridge mybridge
 $ sudo docker run -it --name mynetwork_container --net mybridge ubuntu:14.04
-$ sudo docker network create --driver bridge --subnet=172.72.0.0/16 --ip-range=172.72.0.0/24 --gateway=172.72.0.1 my_custom_network
+$ sudo docker network create --driver bridge --subnet 172.72.0.0/16 --ip-range 172.72.0.0/24 --gateway 172.72.0.1 my_custom_network
 
 ## - host network
 $ sudo docker run -it --name network_host --net host ubuntu:14.04
@@ -168,7 +168,7 @@ $ sudo docker logs logstest
 $ sudo cat /var/lib/docker/containers/${CONTAINER_ID}/${CONTAINER_ID}-json.log
 
 ## - syslog logging
-$ sudo docker run -d --name syslog_container --log-driver=syslog ubuntu:14.04 echo syslogtest
+$ sudo docker run -d --name syslog_container --log-driver syslog ubuntu:14.04 echo syslogtest
 $ tail /var/log/syslog # for ubuntu 14.04
 $ journalctl -u docker.service # for ubuntu 16.04
 
@@ -184,14 +184,117 @@ $ModLoad imtcp
 $InputTCPServerRun 514
 --------------------------------------------------
 # service rsyslog restart
-$ sudo docker run -it --name rsyslog_client --log-driver=syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="mylog" ubuntu:14.04
+$ sudo docker run -it --name rsyslog_client --log-driver syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="mylog" ubuntu:14.04
 # echo test
 $ sudo docker attach rsyslog_server
 # tail /var/log/syslog
 
-$ sudo docker run -it --name rsyslog_client_facility --log-driver=syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="maillog" --log-opt syslog-facility="mail" ubuntu:14.04
+$ sudo docker run -it --name rsyslog_client_facility --log-driver syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="maillog" --log-opt syslog-facility="mail" ubuntu:14.04
 # echo facility test
 $ sudo docker attach rsyslog_server
 # tail /var/log/mail.log
 
 ## - fluentd logging
+$ sudo docker run -d --name mongoDB -p 27017:27017 mongo
+$ vi /home/hansung/work/docker/logging/fluentd/fluent.conf
+--------------------------------------------------
+<source>
+  @type forward
+</source>
+<match docker.**>
+  @type mongo
+  database nginx
+  collection access
+  host 192.168.0.15
+  port 27017
+  flush_interval 10s
+</match>
+--------------------------------------------------
+$ sudo docker run -d --name fluentd -p 24224:24224 -v /home/hansung/work/docker/logging/fluentd/fluent.conf:/fluentd/etc/fluent.conf -e FLUENTD_CONF=fluent.conf alicek106/fluentd:mongo
+$ sudo docker run -d --name nginx_logging -p 80:80 --log-driver fluentd --log-opt fluentd-address=192.168.0.15:24224 --log-opt tag=docker.nginx.webserver nginx
+$ sudo docker exec -it mongoDB mongo
+> show dbs
+> use nginx
+> show collections
+> db['access'].find()
+
+## - aws cloudwatch logging
+$ sudo docker run -it --name aws_cloudwatch_logging --log-driver awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=mylogs --log-opt awslogs-stream=mylogstream ubuntu:14.04
+# echo test!
+
+## container resource restriction
+## - container memory restriction
+$ sudo docker run -d --name memory_1g --memory 1g nginx
+$ sudo docker inspect memory_1g | grep \"Memory\"
+$ sudo docker run -d --name swap_500m --memory 200m --memory-swap 500m ubuntu:14.04
+$ sudo docker inspect swap_500m | grep Memory
+
+## - container cpu restriction
+$ sudo docker run -it --name cpu_share --cpu-shares 2048 ubuntu:14.04 # 1024: 1 ratio, 2048: 2 ratio
+$ sudo docker run -d --name cpu_1024 --cpu-shares 1024 alicek106/stress stress --cpu 1
+$ sudo docker run -d --name cpu_512 --cpu-shares 512 alicek106/stress stress --cpu 1
+$ ps aux | head -1; ps aux | grep stress
+
+$ sudo docker run -d --name cpuset_2 --cpuset-cpus 0 alicek106/stress stress --cpu 1 # 1-th cpu
+$ htop
+$ sudo docker run -d --name cpuset_0_3 --cpuset-cpus "0,3" alicek106/stress stress --cpu 1 # 1-th, 4-th cpu
+$ htop
+$ sudo docker run -d --name cpuset_0_2 --cpuset-cpus "0-2" alicek106/stress stress --cpu 1 # 1-th ~ 3-th cpu
+$ htop
+
+$ sudo docker run -d --name quota_1_4 --cpu-period 100000 --cpu-quota 25000 alicek106/stress stress --cpu 1 # 25000ms/100000ms=1/4
+$ sudo docker run -d --name quota_1_1 --cpu-period 100000 --cpu-quota 100000 alicek106/stress stress --cpu 1 # 100000ms/100000ms=1/1
+$ ps aux | head -1; ps aux | grep stress
+
+$ sudo docker run -d --name cpu_half_1 --cpus 0.5 alicek106/stress stress --cpu 1 # 0.5 cpus
+$ sudo docker run -d --name cpu_half_2 --cpu-shares 512 alicek106/stress stress --cpu 1
+$ sudo docker run -d --name cpu_half_3 --cpu-period 100000 --cpu-quota 50000 alicek106/stress stress --cpu 1
+$ ps aux | head -1; ps aux | grep stress
+
+## - container block I/O restriction
+$ sudo docker run -it --name write_bps_1mb --device-write-bps /dev/sda1:1mb ubuntu:14.04 # 1 Mbps
+# dd if=/dev/zero of=test.out bs=1M count=10 oflag=direct
+$ sudo docker run -it --name write_iops_5 --device-write-iops /dev/sda1:5 ubuntu:14.04 # 5 ratio
+# dd if=/dev/zero of=test.out bs=1M count=10 oflag=direct
+$ sudo docker run -it --name write_iops_10 --device-write-iops /dev/sda1:10 ubuntu:14.04 # 10 ratio
+# dd if=/dev/zero of=test.out bs=1M count=10 oflag=direct
+
+## - container storage restriction
+$ sudo docker run -it --name centos centos:7
+# df -h
+$ sudo docker run -it --name ubuntu ubuntu:14.04
+# df -h
+$ sudo docker info | grep "Storage Driver"
+DOCKER_OPTS="... --storage-driver=divicemapper --storage-opt dm.basesize=20G ..."
+$ sudo service docker stop
+$ sudo rm -rf /var/lib/docker
+$ sudo service docker start
+$ sudo docker run -it --name centos2 centos:7
+# df -h
+
+## docker image
+## - create docker image
+$ sudo docker search ubuntu
+
+$ sudo docker run -it --name commit_test ubuntu:14.04
+# echo test_first! >> first
+$ sudo docker commit -a "alicek106" -m "my first commit" commit_test commit_test:first
+$ sudo docker images
+$ sudo docker run -it --name commit_test2 commit_test:first
+# echo test_second! >> second
+$ sudo docker commit -a "alicek106" -m "my second commit" commit_test2 commit_test:second
+$ sudo docker images
+
+## - comprehend image structure and remove docker image
+$ sudo docker inspect ubuntu:14.04 | grep -A5 Layers
+$ sudo docker inspect commit_test:first | grep -A6 Layers
+$ sudo docker inspect commit_test:second | grep -A7 Layers
+
+$ sudo docker stop commit_test2 && sudo docker rm commit_test2
+$ sudo docker rmi commit_test:first
+$ sudo docker images -f dangling=true
+$ sudo docker image prune # remove all dangling images which is not being used.
+$ sudo docker rmi -f commit_test:first # only remove image tag.
+$ sudo docker rmi commit_test:second
+
+## - extract image
