@@ -174,7 +174,7 @@ $ journalctl -u docker.service # for ubuntu 16.04
 
 $ sudo docker run -it --name rsyslog_server -h rsyslog -p 514:514 -p 514:514/udp ubuntu:14.04
 # vi /etc/rsyslog.conf
---------------------------------------------------
+----------------------------------------------------------------------------------------------------
 # provides UDP syslog reception
 $ModLoad imudp
 $UDPServerRun 514
@@ -182,7 +182,7 @@ $UDPServerRun 514
 # provides TCP syslog reception
 $ModLoad imtcp
 $InputTCPServerRun 514
---------------------------------------------------
+----------------------------------------------------------------------------------------------------
 # service rsyslog restart
 $ sudo docker run -it --name rsyslog_client --log-driver syslog --log-opt syslog-address=tcp://192.168.0.15:514 --log-opt tag="mylog" ubuntu:14.04
 # echo test
@@ -197,7 +197,7 @@ $ sudo docker attach rsyslog_server
 ## - fluentd logging
 $ sudo docker run -d --name mongoDB -p 27017:27017 mongo
 $ vi /home/hansung/work/docker/logging/fluentd/fluent.conf
---------------------------------------------------
+----------------------------------------------------------------------------------------------------
 <source>
   @type forward
 </source>
@@ -209,7 +209,7 @@ $ vi /home/hansung/work/docker/logging/fluentd/fluent.conf
   port 27017
   flush_interval 10s
 </match>
---------------------------------------------------
+----------------------------------------------------------------------------------------------------
 $ sudo docker run -d --name fluentd -p 24224:24224 -v /home/hansung/work/docker/logging/fluentd/fluent.conf:/fluentd/etc/fluent.conf -e FLUENTD_CONF=fluent.conf alicek106/fluentd:mongo
 $ sudo docker run -d --name nginx_logging -p 80:80 --log-driver fluentd --log-opt fluentd-address=192.168.0.15:24224 --log-opt tag=docker.nginx.webserver nginx
 $ sudo docker exec -it mongoDB mongo
@@ -265,7 +265,7 @@ $ sudo docker run -it --name centos centos:7
 $ sudo docker run -it --name ubuntu ubuntu:14.04
 # df -h
 $ sudo docker info | grep "Storage Driver"
-DOCKER_OPTS="... --storage-driver=divicemapper --storage-opt dm.basesize=20G ..."
+DOCKER_OPTS=".... --storage-driver=divicemapper --storage-opt dm.basesize=20G ...."
 $ sudo service docker stop
 $ sudo rm -rf /var/lib/docker
 $ sudo service docker start
@@ -298,3 +298,231 @@ $ sudo docker rmi -f commit_test:first # only remove image tag.
 $ sudo docker rmi commit_test:second
 
 ## - extract image
+$ sudo docker save -o ubuntu_14_04.tar ubuntu:14.04
+$ sudo docker load -i ubuntu_14_04.tar
+
+$ sudo docker run -it --name mycontainer ubuntu:14.04
+$ sudo docker export -o rootFS.tar mycontainer
+$ sudo docker import rootFS.tar myimage:0.0
+
+## docker hub
+## - docker hub site
+https://hub.docker.com/
+  - ID: hansung080
+  - PW: *********
+  - E-mail: hansung080@hanmail.net
+
+## - push image to docker hub
+$ sudo docker run -it --name commit_container1 ubuntu:14.04
+# echo my first push >> test
+$ sudo docker commit commit_container1 myimagename:0.0
+$ sudo docker tag myimagename:0.0 hansung080/myimagename:0.0
+$ sudo docker login
+$ sudo cat ~/.docker/config.json
+$ sudo docker push hansung080/myimagename:0.0
+
+## docker private registry
+## - create private registry container
+$ sudo docker run -d --name myregistry -p 5000:5000 --restart always registry:2.6 # restart: always / on-failure:5 / unless-stopped
+$ curl localhost:5000/v2/
+
+## - push image to private registry
+$ sudo docker tag myimagename:0.0 192.168.0.15:5000/myimagename:0.0
+DOCKER_OPTS="--insecure-registry=192.168.0.15:5000"
+$ sudo docker push 192.168.0.15:5000/myimagename:0.0 # http requires --insecure-registry option.
+$ sudo docker pull 192.168.0.15:5000/myimagename:0.0 # http requires --insecure-registry option.
+
+$ sudo docker tag myimagename:0.0 localhost:5000/myimagename:0.0
+$ sudo docker push localhost:5000/myimagename:0.0 # http with localhost does not require --insecure-registry option.
+$ sudo docker pull localhost:5000/myimagename:0.0 # http with localhost does not require --insecure-registry option.
+
+## - remove private registry container
+$ sudo docker stop myregistry
+$ sudo docker rm --volumes myregistry
+
+## - create authentication with nginx
+$ mkdir certs
+$ openssl genrsa -out ./certs/ca.key 2048
+$ openssl req -x509 -new -key ./certs/ca.key -days 10000 -out ./certs/ca.crt
+$ openssl genrsa -out ./certs/domain.key 2048
+$ openssl req -new -key ./certs/domain.key -subj /CN=192.168.0.15 -out ./certs/domain.csr
+$ echo subjectAltName = IP:192.168.0.15 > extfile.cnf
+$ openssl x509 -req -in ./certs/domain.csr -CA ./certs/ca.crt -CAkey ./certs/ca.key -CAcreateserial -out ./certs/domain.crt -days 10000 -extfile extfile.cnf
+
+$ sudo apt-get install apache2-utils
+$ htpasswd -c htpasswd hansung080
+New password: test1234
+Re-type new password: test1234
+Adding password for user hansung080
+$ mv htpasswd ./certs/
+
+$ vi ./certs/nginx.conf
+----------------------------------------------------------------------------------------------------
+upstream docker-registry {
+  server registry:5000;
+}
+
+server {
+  listen 443;
+  server_name 192.168.0.15;
+  ssl on;
+  ssl_certificate /etc/nginx/conf.d/domain.crt;
+  ssl_certificate_key /etc/nginx/conf.d/domain.key;
+  client_max_body_size 0;
+  chunked_transfer_encoding on;
+
+  location /v2/ {
+    if ($http_user_agent ~ "^(docker\/1\.(3|4|5(?!\.[0-9]-dev))|Go ).*$" ) {
+      return 404;
+    }
+
+    auth_basic "registry.localhost";
+    auth_basic_user_file /etc/nginx/conf.d/htpasswd;
+    add_header 'Docker-Distribution-Api-Version' 'registry/2.0' always;
+
+    proxy_pass                          http://docker-registry;
+    proxy_set_header  Host              $http_host;
+    proxy_set_header  X-Real-IP         $remote_addr;
+    proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header  X-Forwarded-Proto $scheme;
+    proxy_read_timeout                  900;
+  }
+}
+----------------------------------------------------------------------------------------------------
+
+$ sudo docker stop myregistry; sudo docker rm myregistry
+$ sudo docker run -d --name myregistry --restart always registry:2.6
+$ sudo docker run -d --name nginx_frontend -p 443:443 -v $(pwd)/certs/:/etc/nginx/conf.d --link myregistry:registry nginx:1.9
+$ sudo docker ps -a --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+
+$ sudo cp ./certs/ca.crt /usr/local/share/ca-certificates
+$ sudo update-ca-certificates
+$ sudo service docker restart
+$ sudo docker start nginx_frontend
+$ sudo docker login https://192.168.0.15 # 443: omittable
+
+$ sudo docker tag myimagename:0.0 192.168.0.15/myimagename:0.0 # 443: omittable
+$ sudo docker push 192.168.0.15/myimagename:0.0
+$ sudo docker pull 192.168.0.15/myimagename:0.0
+
+## - private registry restful api
+$ curl -u hansung080:test1234 https://192.168.0.15/v2/_catalog # 443: omittable
+{"repositories":["myimagename"]}
+
+$ curl -u hansung080:test1234 https://192.168.0.15/v2/myimagename/tags/list
+{"name":"myimagename","tags":["0.0"]}
+
+$ curl -u hansung080:test1234 -i --header "Accept: application/vnd.docker.distribution.manifest.v2+json" https://192.168.0.15/v2/myimagename/manifests/0.0
+HTTP/1.1 200 OK
+Server: nginx/1.9.15
+Date: Mon, 06 May 2019 08:59:02 GMT
+Content-Type: application/vnd.docker.distribution.manifest.v2+json
+Content-Length: 1359
+Connection: keep-alive
+Docker-Content-Digest: sha256:ab3c62f57894c0509ac60c1bc473c309683821bc4b8d001fd6e5632b042e2250
+Docker-Distribution-Api-Version: registry/2.0
+Etag: "sha256:ab3c62f57894c0509ac60c1bc473c309683821bc4b8d001fd6e5632b042e2250"
+X-Content-Type-Options: nosniff
+Docker-Distribution-Api-Version: registry/2.0
+
+{
+   "schemaVersion": 2,
+   "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+   "config": {
+      "mediaType": "application/vnd.docker.container.image.v1+json",
+      "size": 3388,
+      "digest": "sha256:21ee2ff6ae162378e27c4bef1937fad210581f2f6b3f017cf08ef7c35ee801d0"
+   },
+   "layers": [
+      {
+         "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+         "size": 67191621,
+         "digest": "sha256:d6fdcbe24ed5fa182ac7e2079daca382068952e5b9e1f78e47a1492feae37379"
+      },
+      {
+         "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+         "size": 72646,
+         "digest": "sha256:1115217119d4439b38f4fc557ba298d0de6c9e1ecce52b93ad2d25d3523758a1"
+      },
+      {
+         "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+         "size": 364,
+         "digest": "sha256:8180a23d2c44e5284574f3cf04081a3d5825a61174d41f3d4801e8f00464d5b9"
+      },
+      {
+         "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+         "size": 164,
+         "digest": "sha256:ceab6b3c2a5e76a26134953a6f8ef95dba277ad43b38cd03c00380660df24b8f"
+      },
+      {
+         "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+         "size": 197,
+         "digest": "sha256:be21a105939ebdcb78ec0c7d905558555db9d7281a4099065ddaea49e51c3368"
+      }
+   ]
+}
+
+$ curl -u hansung080:test1234 -i -X DELETE -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://192.168.0.15/v2/myimagename/manifests/sha256:ab3c62f57894c0509ac60c1bc473c309683821bc4b8d001fd6e5632b042e2250 # {Docker-Content-Digest} 
+HTTP/1.1 405 Method Not Allowed
+...
+
+{"errors":[{"code":"UNSUPPORTED","message":"The operation is unsupported."}]}
+
+$ sudo docker stop myregistry; sudo docker rm myregistry
+$ sudo docker run -d --name myregistry --restart always -e REGISTRY_STORAGE_DELETE_ENABLED=true registry:2.6
+$ sudo docker push 192.168.0.15/myimagename:0.0
+
+$ curl -u hansung080:test1234 -i -X DELETE -H "Accept: application/vnd.docker.distribution.manifest.v2+json" https://192.168.0.15/v2/myimagename/manifests/sha256:ab3c62f57894c0509ac60c1bc473c309683821bc4b8d001fd6e5632b042e2250 # {Docker-Content-Digest}
+HTTP/1.1 202 Accepted
+...
+
+$ curl -u hansung080:test1234 -i -X DELETE https://192.168.0.15/v2/myimagename/blobs/sha256:be21a105939ebdcb78ec0c7d905558555db9d7281a4099065ddaea49e51c3368 # {layers.digest}
+HTTP/1.1 202 Accepted
+...
+
+## - set private registry options
+$ sudo docker run -d --name registry_delete_enabled -p 5001:5000 --restart always -e REGISTRY_STORAGE_DELETE_ENABLED=true -e REGISTRY_STORATE_FILESYSTEM_ROOTDIRECTORY=/var/lib/mydocker registry:2.6
+$ sudo docker exec registry_delete_enabled cat /etc/docker/registry/config.yml
+
+$ vi config.yml
+----------------------------------------------------------------------------------------------------
+version: 0.1
+log:
+  level: info
+storage:
+  filesystem:
+    rootdirectory: /registry_data
+    delete:
+      enabled: true
+http:
+  addr: 0.0.0.0:5000
+----------------------------------------------------------------------------------------------------
+$ sudo docker run -d --name yml_registry -p 5002:5000 --restart always -v $(pwd)/config.yml:/etc/docker/registry/config.yml registry:2.6
+$ sudo docker tag ubuntu:14.04 localhost:5002/ubuntu:14.04
+$ sudo docker push localhost:5002/ubuntu:14.04
+$ sudo docker exec yml_registry ls /registry_data
+
+## dockerfile
+## - create dockerfile
+$ mkdir -p dockerfiles/apache && cd dockerfiles/apache
+$ echo test >> test.html
+$ vi Dockerfile
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+MAINTAINER hansung080
+LABEL "purpose"="practice"
+RUN apt-get update
+RUN apt-get install apache2 -y
+ADD test.html /var/www/html
+WORKDIR /var/www/html
+RUN ["/bin/bash", "-c", "echo hello >> test2.html"]
+EXPOSE 80
+CMD apachectl -DFOREGROUND
+----------------------------------------------------------------------------------------------------
+
+## - build dockerfile
+$ sudo docker build -t apache:0.0 .
+$ sudo docker images
+$ sudo docker run -d --name myapache -P apache:0.0
+$ sudo docker ps -a
+$ sudo docker port myapache
