@@ -265,7 +265,7 @@ $ sudo docker run -it --name centos centos:7
 $ sudo docker run -it --name ubuntu ubuntu:14.04
 # df -h
 $ sudo docker info | grep "Storage Driver"
-DOCKER_OPTS=".... --storage-driver=divicemapper --storage-opt dm.basesize=20G ...."
+DOCKER_OPTS="... --storage-driver divicemapper --storage-opt dm.basesize=20G ..."
 $ sudo service docker stop
 $ sudo rm -rf /var/lib/docker
 $ sudo service docker start
@@ -328,7 +328,7 @@ $ curl localhost:5000/v2/
 
 ## - push image to private registry
 $ sudo docker tag myimagename:0.0 192.168.0.15:5000/myimagename:0.0
-DOCKER_OPTS="--insecure-registry=192.168.0.15:5000"
+DOCKER_OPTS="--insecure-registry 192.168.0.15:5000"
 $ sudo docker push 192.168.0.15:5000/myimagename:0.0 # http requires --insecure-registry option.
 $ sudo docker pull 192.168.0.15:5000/myimagename:0.0 # http requires --insecure-registry option.
 
@@ -504,9 +504,9 @@ $ sudo docker exec yml_registry ls /registry_data
 
 ## dockerfile
 ## - create dockerfile
-$ mkdir -p dockerfiles/apache && cd dockerfiles/apache
+$ mkdir -p dockerfiles && cd dockerfiles
 $ echo test >> test.html
-$ vi Dockerfile
+$ vi Dockerfile_apache
 ----------------------------------------------------------------------------------------------------
 FROM ubuntu:14.04
 MAINTAINER hansung080
@@ -521,8 +521,266 @@ CMD apachectl -DFOREGROUND
 ----------------------------------------------------------------------------------------------------
 
 ## - build dockerfile
-$ sudo docker build -t apache:0.0 .
+$ sudo docker build -f Dockerfile_apache -t mybuild:0.0 .
 $ sudo docker images
-$ sudo docker run -d --name myapache -P apache:0.0
+$ sudo docker run -d -P --name myserver mybuild:0.0
 $ sudo docker ps -a
-$ sudo docker port myapache
+$ sudo docker port myserver
+
+## - .dockerignore
+$ vi .dockerignore
+----------------------------------------------------------------------------------------------------
+test2.html
+*.html
+*/*.html
+test.htm?
+!test*.html
+----------------------------------------------------------------------------------------------------
+
+## - cache options
+$ sudo docker build -f Dockerfile_apache --no-cache -t mybuild:0.0 .
+$ sudo docker build -f Dockerfile_apache --cache-from ubuntu:14.04 -t my_extend_ubuntu:14.04 .
+
+## - ENV, VOLUME, ARG, USER
+$ vi Dockerfile_env
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+ENV TEST /home
+WORKDIR ${TEST}
+RUN touch ${TEST}/mytouchfile
+---------------------------------------------------------------------------------------------------- 
+$ sudo docker build -f Dockerfile_env -t myenv:0.0 .
+$ sudo docker run -it --name env_test myenv:0.0 /bin/bash
+# echo $TEST
+/home
+# ls
+mytouchfile
+$ sudo docker run -it --name env_test_override -e TEST=myvalue myenv:0.0 /bin/bash
+# echo $TEST
+myvalue
+
+$ vi Dockerfile_env2
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+ENV MY_ENV my_value
+RUN echo [ ${MY_ENV:-value} / ${MY_ENV:+value} / ${MY_ENV2:-value} / ${MY_ENV2:+value} ]
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_env2 -t myenv:0.1 .
+...
+[ my_value / value / value / ]
+...
+
+$ vi Dockerfile_volume
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+RUN mkdir /home/volume
+RUN echo test >> /home/volume/testfile
+VOLUME /home/volume
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_volume -t myvolume:0.0 .
+$ sudo docker run -itd --name volume_test myvolume:0.0
+$ sudo docker volume ls
+
+$ vi Dockerfile_arg
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+ARG MY_ARG
+ARG MY_ARG2=value2
+RUN touch ${MY_ARG}/mytouch
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_arg --build-arg MY_ARG=/home -t myarg:0.0 .
+$ sudo docker run -it --name arg_test myarg:0.0
+# ls /home/mytouch
+/home/mytouch
+
+$ vi Dockerfile_user
+----------------------------------------------------------------------------------------------------
+...
+RUN groupadd -r author && useradd -r -g author hansung
+USER hansung
+...
+----------------------------------------------------------------------------------------------------
+
+## - ONBUILD, STOPSIGNAL, HEALTHCHECK, SHELL
+$ vi Dockerfile_onbuild
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+RUN echo "This is onbuild test!"
+ONBUILD RUN echo "onbuild!" >> /onbuild_file
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_onbuild -t onbuild_test:0.0 .
+$ sudo docker run -it --rm onbuild_test:0.0 ls /
+
+$ vi Dockerfile_onbuild2
+----------------------------------------------------------------------------------------------------
+FROM onbuild_test:0.0
+RUN echo "This is child image!"
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_onbuild2 -t onbuild_test:0.1 .
+$ sudo docker run -it --rm onbuild_test:0.1 ls /
+
+$ vi Dockerfile_maven
+----------------------------------------------------------------------------------------------------
+FROM maven:3-jdk-8-alpine
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+ONBUILD ADD . /usr/src/app
+ONBUILD RUN mvn install
+----------------------------------------------------------------------------------------------------
+
+$ vi Dockerfile_stopsignal
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+STOPSIGNAL SIGKILL
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_stopsignal -t stopsignal:0.0 .
+$ sudo docker run -itd --name stopsignal_container stopsignal:0.0
+$ sudo docker inspect stopsignal_container | grep StopSignal
+
+$ vi Dockerfile_healthcheck
+----------------------------------------------------------------------------------------------------
+FROM nginx
+RUN apt-get update -y && apt-get install curl -y
+HEALTHCHECK --interval=1m --timeout=3s --retries=3 CMD curl -f http://localhost || exit 1
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_healthcheck -t nginx:healthcheck .
+$ sudo docker run -d -P --name healthcheck_test nginx:healthcheck
+$ sudo docker ps -a
+$ sudo docker inspect healthcheck_test | grep -A10 Health
+
+$ vi Dockerfile_shell
+----------------------------------------------------------------------------------------------------
+...
+RUN echo "hello, world!" # linux: /bin/sh -c echo "hello, world!", windows: cmd /S /C echo "hello, world!"
+...
+----------------------------------------------------------------------------------------------------
+
+$ vi Dockerfile_shell2
+----------------------------------------------------------------------------------------------------
+FROM node
+RUN echo hello, node!
+SHELL ["/usr/local/bin/node"]
+RUN -v
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_shell2 -t nodetest .
+
+## - COPY, ADD
+$ vi Dockerfile_copy_add
+----------------------------------------------------------------------------------------------------
+...
+COPY test.html /home
+COPY ["test.html", "test2.html", "/home"]
+ADD test.html /home
+ADD ["test.html", "test2.html", "/home"]
+ADD https://raw.githubusercontent.com/alicek106/mydockerrepo/master/test.html /home
+ADD test.tar /home
+...
+----------------------------------------------------------------------------------------------------
+
+## - ENTRYPOINT, CMD
+$ sudo docker run -it --name no_entrypoint ubuntu:14.04 /bin/bash
+$ sudo docker run -it --name yes_entrypoint --entrypoint "echo" ubuntu:14.04 /bin/bash
+$ sudo docker run -it --name entrypoint_sh --entrypoint "/test.sh" ubuntu:14.04 /bin/bash
+
+$ vi entrypoint.sh
+----------------------------------------------------------------------------------------------------
+echo $1 $2
+apachectl -DFOREGROUND
+----------------------------------------------------------------------------------------------------
+$ vi Dockerfile_entrypoint
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+RUN apt-get update
+RUN apt-get install apache2 -y
+ADD entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_entrypoint -t entrypoint_image:0.0 .
+$ sudo docker run -d --name entrypoint_apache_server entrypoint_image:0.0 first second
+$ sudo docker logs entrypoint_apache_server
+
+## - difference between general format and json array format
+$ vi Dockerfile_general
+----------------------------------------------------------------------------------------------------
+...
+CMD echo test # /bin/sh -c echo test
+ENTRYPOINT /entrypoint.sh # /bin/sh -c /entrypoint.sh
+# -> /bin/sh -c /entrypoint.sh /bin/sh -c echo test
+...
+----------------------------------------------------------------------------------------------------
+
+$ vi Dockerfile_jsonarray
+----------------------------------------------------------------------------------------------------
+...
+CMD ["echo", "test"] # echo test
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"] # /bin/bash /entrypoint.sh
+# -> /bin/bash /entrypoint.sh echo test
+...
+----------------------------------------------------------------------------------------------------
+
+## - precautions for dockerfile
+$ vi Dockerfile_ok
+----------------------------------------------------------------------------------------------------
+...
+RUN apt-get install package-1 \
+package-2 \
+package-3
+...
+----------------------------------------------------------------------------------------------------
+
+$ vi Dockerfile_ng
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+RUN mkdir /test
+RUN fallocate -l 100m /test/dummy
+RUN rm /test/dummy
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_ng -t falloc_100mb:0.0 .
+$ sudo docker images
+
+$ vi Dockerfile_ok
+----------------------------------------------------------------------------------------------------
+FROM ubuntu:14.04
+RUN mkdir /test && \
+fallocate -l 100m /test/dummy && \
+rm /test/dummy
+----------------------------------------------------------------------------------------------------
+$ sudo docker build -f Dockerfile_ok -t falloc_100mb:0.1 .
+$ sudo docker images
+
+$ sudo docker run -itd --name temp falloc_100mb:0.0
+$ sudo docker export temp | sudo docker import - falloc_100mb:0.2
+$ sudo docker run -itd --name temp2 falloc_100mb:0.2
+docker: Error response from daemon: No command specified.
+
+## docker daemon
+## - run docker daemon 
+$ sudo service docker stop
+$ sudo service docker start
+$ sudo dockerd
+$ sudo docker daemon
+
+## - set docker daemon options
+$ sudo dockerd --help
+$ sudo dockerd -H tcp://0.0.0.0:2375 --insecure_registry 192.168.0.15:5000 --tls false
+$ sudo vi /etc/default/docker
+----------------------------------------------------------------------------------------------------
+...
+DOCKER_OPTS="dockerd -H tcp://0.0.0.0:2375 --insecure_registry 192.168.0.15:5000 --tls false"
+----------------------------------------------------------------------------------------------------
+
+## - docker daemon control: -H
+$ sudo dockerd -H unix:///var/run/docker.sock # same as sudo dockerd
+$ sudo dockerd -H tcp://0.0.0.0:2375
+$ sudo dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
+$ curl 192.168.0.15:2375/version
+
+$ export DOCKER_HOST="tcp://192.168.0.15:2375"
+$ sudo docker version
+$ sudo docker -H tcp://192.168.0.15:2375 version
+
+## - docker daemon control: --tlsverify
+
+https://docs.docker.com/engine/api/sdks
+https://docs.docker.com/develop/sdk/
