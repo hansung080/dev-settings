@@ -3,6 +3,9 @@
 # download web page
 https://golang.org/dl/
 
+# install go
+-> as-is
+
 # set environment variables
 GOROOT -> C:\Go
 GOPATH -> C:\work\ws\go
@@ -19,9 +22,19 @@ $ go env
 $ go get golang.org/x/tools/cmd/...
 
 # test sample code
-create github.com/hansung080/hello/hello.go or local/hello/hello.go
+$ vi $GOPATH/src/local/hello/hello.go
+--------------------------------------------------
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, world!")
+}
+--------------------------------------------------
 $ goimports -w hello.go
 $ gofmt -w hello.go
 $ go run hello.go
-$ go build github.com/hansung080/hello
-$ go install github.com/hansung080/hello
+$ go build local/hello
+$ go install local/hello
+
