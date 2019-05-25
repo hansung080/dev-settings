@@ -781,6 +781,55 @@ $ sudo docker version
 $ sudo docker -H tcp://192.168.0.15:2375 version
 
 ## - docker daemon control: --tlsverify
+$ mkdir certs && cd certs
+$ openssl genrsa -aes256 -out ca-key.pem 4096
+Enter pass phrase for ca-key.pem:test1234
+Verifying - Enter pass phrase for ca-key.pem:test1234
+$ openssl req -new -x509 -days 10000 -key ca-key.pem -sha256 -out ca.pem
+Enter pass phrase for ca-key.pem:test1234
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:
+Email Address []:
+$ openssl genrsa -out server-key.pem 4096
+$ openssl req -subj "/CN=192.168.0.15" -sha256 -new -key server-key.pem -out server.csr
+$ echo subjectAltName = IP:192.168.0.15,IP:127.0.0.1 > extfile.cnf
+$ openssl x509 -req -days 365 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server-cert.pem -extfile extfile.cnf
+Enter pass phrase for ca-key.pem:test1234
 
-https://docs.docker.com/engine/api/sdks
-https://docs.docker.com/develop/sdk/
+$ openssl genrsa -out key.pem 4096
+$ openssl req -subj "/CN=192.168.0.15" -new -key key.pem -out client.csr
+$ echo extendedKeyUsage = clientAuth > extfile.cnf
+$ openssl x509 -req -days 30000 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile extfile.cnf
+Enter pass phrase for ca-key.pem:test1234
+$ ls
+ca-key.pem ca.pem cert.pem key.pem server-cert.pem server-key.pem
+$ chmod -v 0400 ca-key.pem ca.pem cert.pem key.pem server-cert.pem server-key.pem
+$ sudo mkdir ~/.docker/certs
+$ sudo cp {ca,server-key,server-cert,key,cert}.pem ~/.docker/certs
+
+$ sudo service docker stop
+$ sudo dockerd --tlsverify --tlscacert ~/.docker/certs/ca.pem --tlscert ~/.docker/certs/server-cert.pem --tlskey ~/.docker/certs/server-key.pem -H 0.0.0.0:2376 -H unix:///var/run/docker.sock
+$ sudo docker -H 192.168.0.15:2376 version
+Get http://192.168.0.15:2376/v1.39/version: net/http: HTTP/1.x transport connection broken: malformed HTTP response "\x15\x03\x01\x00\x02\x02".
+* Are you trying to connect to a TLS-enabled daemon without TLS?
+$ sudo docker -H 192.168.0.15:2376 --tlsverify --tlscacert ~/.docker/certs/ca.pem --tlscert ~/.docker/certs/cert.pem --tlskey ~/.docker/certs/key.pem version
+$ export DOCKER_CERT_PATH="~/.docker/certs"
+$ export DOCKER_TLS_VERIFY=1
+$ sudo docker -H 192.168.0.15:2376 version
+$ sudo curl https://192.168.0.15:2376/version --cacert ~/.docker/certs/ca.pem --cert ~/.docker/certs/cert.pem --key ~/.docker/certs/key.pem
+$ Ctrl + C # kill dockerd
+$ sudo service docker start
+
+## - docker daemon control: --storage-driver
+$ sudo docker info | grep "Storage Driver"
+Storage Driver: overlay2
+$ sudo dockerd --storage-driver devicemapper
+
+## - docker daemon monitoring: debug mode
+$ sudo dockerd -D
+
+## - docker daemon monitoring: events
