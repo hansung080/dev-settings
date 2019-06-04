@@ -33,8 +33,9 @@ $ git log --graph # show graph of branches.
 
 # remote commands.
 $ git clone <url> # copy a remote repository identified by <url> to a local repository.
-$ git remote add origin <url> # connect a local repository to a remote repository identified by <url> and nickname it origin.
 $ git remote -v # show connection between a local repository and a remote repository.
+$ git remote add origin <url> # connect a local repository to a remote repository identified by <url> and nickname it origin.
+$ git remote set-url origin <url> # change connection to a remote repository identified by <url>
 $ git push origin <branch> # push commits of <branch> to origin.
 $ git push origin --all # push commits of all branches to origin.
 $ git push -u origin <branch> # push commits of <branch> to origin, when <branch> of origin dose not exists.
