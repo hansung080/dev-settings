@@ -73,3 +73,17 @@ $ git remote prune origin # clean up branches of a remote repository.
 9. $ git push origin v1.0.0
 10. $ git branch -d hotfix # git branch --delete hotfix or git branch -D hotfix
 11. $ git push origin :hotfix # git push origin --delete hotfix
+
+# tagging commands
+$ git tag # show all tags.
+$ git tag -l v1.0.* # show specified tags.
+$ git tag v1.0.0 # create a new lightweight tag.
+$ git tag -a v1.0.0 -m "release version 1.0.0" # create a new annotated tag.
+$ git tag v1.0.0 <commit hash> # create a new lightweight tag with specified <commit hash>.
+$ git tag -a v1.0.0 -m "release version 1.0.0" <commit hash> # create a new annotated tag with specified <commit hash>.
+$ git tag -s v1.0.0 -m "release version 1.0.0" # create a new lightweight tag with GPG (GNU Privacy Guard) signature.
+$ git show v1.0.0 # show tag info.
+$ git push origin v1.0.0 # push the tag to a remote repository.
+$ git push origin --tags # push all tags to a remote repository.
+$ git tag -d v1.0.0 # delete the tag from a local repository.
+$ git push origin :v1.0.0 # delete the tag from a remote repository.
