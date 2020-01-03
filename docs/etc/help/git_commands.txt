@@ -87,3 +87,9 @@ $ git push origin v1.0.0 # push the tag to a remote repository.
 $ git push origin --tags # push all tags to a remote repository.
 $ git tag -d v1.0.0 # delete the tag from a local repository.
 $ git push origin :v1.0.0 # delete the tag from a remote repository.
+
+# retrack all files
+$ git rm -r --cached .
+$ git add .
+$ git commit -m "message"
+
