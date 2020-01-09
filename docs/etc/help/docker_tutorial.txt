@@ -23,6 +23,12 @@ Docker version 18.09.5, build e8ff056
 
 $ sudo docker info
 
+## run the docker daemon as a non-root user (rootless mode)
+$ sudo usermod -a -G docker $USER
+$ sudo service docker restart
+$ sudo su - $USER
+$ docker info
+
 ### docker engine commands ###
 ## create container
 $ sudo docker run -it ubuntu:14.04
