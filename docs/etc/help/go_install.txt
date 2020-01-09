@@ -1,4 +1,4 @@
-###### go install ######
+###### go install on windows ######
 
 # download web page
 https://golang.org/dl/
@@ -21,20 +21,55 @@ $ go env
 # get command tools
 $ go get golang.org/x/tools/cmd/...
 
-# test sample code
-$ vi $GOPATH/src/local/hello/hello.go
+###### go install on ubuntu ######
+$ cd /usr/local
+$ sudo wget https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
+$ sudo tar xvfz go1.13.5.linux-amd64.tar.gz
+$ sudo rm -f go1.13.5.linux-amd64.tar.gz
+$ mkdir -p ~/work/ws/go
+$ vi ~/.bashrc
+--------------------------------------------------
+# <<< config by hs.kwon
+GOROOT=/usr/local/go
+GOPATH=/home/ubuntu/work/ws/go
+
+alias work='cd /home/ubuntu/work'
+alias ws='cd /home/ubuntu/work/ws'
+
+export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOPATH/bin
+export GOROOT=$GOROOT
+export GOPATH=$GOPATH
+export GOBIN=$GOPATH/bin
+
+echo '.bashrc'
+# >>> config by hs.kwon
+--------------------------------------------------
+$ source ~/.bashrc
+$ go version
+go version go1.13.5 linux/amd64
+$ go env
+GOBIN="/home/ubuntu/work/ws/go/bin"
+GOPATH="/home/ubuntu/work/ws/go"
+GOROOT="/usr/local/go"
+$ go get golang.org/x/tools/cmd/...
+
+###### go hello-world program ######
+$ mkdir -p $GOPATH/src/local/hello
+$ cd $GOPATH/src/local/hello
+$ vi hello.go
 --------------------------------------------------
 package main
 
 import "fmt"
 
 func main() {
-    fmt.Println("Hello, world!")
+	fmt.Println("Hello, world!")
 }
 --------------------------------------------------
 $ goimports -w hello.go
 $ gofmt -w hello.go
 $ go run hello.go
+Hello, world!
 $ go build local/hello
 $ go install local/hello
-
