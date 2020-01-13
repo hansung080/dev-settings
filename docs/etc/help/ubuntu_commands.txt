@@ -63,3 +63,13 @@ $ sudo apt-get install net-utils
 # build tools install
 $ sudo apt-get install build-essential pkg-config autoconf automake libtool
 $ sudo apt-get install autotools-dev libtools-all-dev libssl-dev libevent-dev bsdmainutils
+
+# switch user
+$ sudo su - <user>
+
+# change password
+$ sudo passwd <user>
+
+# change hostname
+$ sudo hostnamectl set-hostname <hostname>
+$ sudo vi /etc/hostname
