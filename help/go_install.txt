@@ -30,17 +30,14 @@ $ mkdir -p ~/work/ws/go
 $ vi ~/.bashrc
 --------------------------------------------------
 # <<< config by hs.kwon
-GOROOT=/usr/local/go
-GOPATH=/home/ubuntu/work/ws/go
+export GOROOT=/usr/local/go
+export GOPATH=/home/ubuntu/work/ws/go
+export GOBIN=$GOPATH/bin
+export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOPATH/bin
 
 alias work='cd /home/ubuntu/work'
 alias ws='cd /home/ubuntu/work/ws'
-
-export PATH=$PATH:$GOROOT/bin
-export PATH=$PATH:$GOPATH/bin
-export GOROOT=$GOROOT
-export GOPATH=$GOPATH
-export GOBIN=$GOPATH/bin
 
 echo '.bashrc'
 # >>> config by hs.kwon
@@ -72,4 +69,8 @@ $ gofmt -w hello.go
 $ go run hello.go
 Hello, world!
 $ go build local/hello
+$ ./hello
+Hello, world!
 $ go install local/hello
+$ hello
+Hello, world!
