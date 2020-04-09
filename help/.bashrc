@@ -1,14 +1,14 @@
 # <<< config by hs.kwon
-WORK_HOME=/home/hansung/work
-JAVA_HOME=/usr/local/java/jdk1.8.0_111
-
-export PATH=$PATH:$WORK_HOME/bin
-export PATH=$PATH:$JAVA_HOME/bin
-#export PS1='[`whoami`@`hostname`]:`pwd`$ '
+export GOROOT=/usr/local/go
+export GOPATH=/home/ubuntu/work/ws/go
+export GOBIN=$GOPATH/bin
+export PATH=$PATH:$GOROOT/bin
+export PATH=$PATH:$GOPATH/bin
+#export PS1='`whoami`@`hostname`:`pwd`$ '
 
 #alias ll='ls -alF'
-alias work='cd /home/hansung/work'
-alias ws='cd /home/hansung/work/ws'
+alias work='cd /home/ubuntu/work'
+alias ws='cd /home/ubuntu/work/ws'
 
 echo '.bashrc'
 # >>> config by hs.kwon
