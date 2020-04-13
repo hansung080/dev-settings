@@ -23,31 +23,31 @@ $ go get golang.org/x/tools/cmd/...
 
 ###### go install on ubuntu ######
 $ cd /usr/local
-$ sudo wget https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz
-$ sudo tar xvfz go1.13.5.linux-amd64.tar.gz
-$ sudo rm -f go1.13.5.linux-amd64.tar.gz
+$ sudo wget https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
+$ sudo tar xvfz go1.14.2.linux-amd64.tar.gz
+$ sudo rm -f go1.14.2.linux-amd64.tar.gz
 $ mkdir -p ~/work/ws/go
 $ vi ~/.bashrc
 --------------------------------------------------
 # <<< config by hs.kwon
 export GOROOT=/usr/local/go
-export GOPATH=/home/ubuntu/work/ws/go
+export GOPATH=/home/hansung/work/ws/go
 export GOBIN=$GOPATH/bin
 export PATH=$PATH:$GOROOT/bin
 export PATH=$PATH:$GOPATH/bin
 
-alias work='cd /home/ubuntu/work'
-alias ws='cd /home/ubuntu/work/ws'
+alias work='cd /home/hansung/work'
+alias ws='cd /home/hansung/work/ws'
 
 echo '.bashrc'
 # >>> config by hs.kwon
 --------------------------------------------------
 $ source ~/.bashrc
 $ go version
-go version go1.13.5 linux/amd64
+go version go1.14.2 linux/amd64
 $ go env
-GOBIN="/home/ubuntu/work/ws/go/bin"
-GOPATH="/home/ubuntu/work/ws/go"
+GOBIN="/home/hansung/work/ws/go/bin"
+GOPATH="/home/hansung/work/ws/go"
 GOROOT="/usr/local/go"
 $ go get golang.org/x/tools/cmd/...
 
@@ -74,3 +74,4 @@ Hello, world!
 $ go install local/hello
 $ hello
 Hello, world!
+
