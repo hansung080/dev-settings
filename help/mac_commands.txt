@@ -16,5 +16,5 @@ $ brew install autoconf automake autogen libtool shtool gettext
 # wget
 $ brew install wget
 
-# xcode-select
-$ sudo xcode-select --install
+# xcode command line tools
+$ xcode-select --install
