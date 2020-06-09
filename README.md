@@ -1,2 +1,2 @@
 # Assets
-various things and stuff
+Various things and stuff
