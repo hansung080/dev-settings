@@ -1,7 +1,6 @@
 " .vimrc
 
 " Syntax Highlighting
-" sudo apt-get install vim
 if has("syntax")
     syn on
 endif
