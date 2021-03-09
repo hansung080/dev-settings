@@ -1,4 +1,4 @@
-# <<< hansung-config
+# <<< hansung config
 export GOROOT=/usr/local/go
 export GOPATH=/home/ubuntu/work/ws/go
 export GOBIN=$GOPATH/bin
@@ -11,4 +11,4 @@ alias work='cd /home/ubuntu/work'
 alias ws='cd /home/ubuntu/work/ws'
 
 echo '.bashrc'
-# >>> hansung-config
+# >>> hansung config
