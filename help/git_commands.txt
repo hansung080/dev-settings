@@ -74,7 +74,7 @@ $ git remote prune origin # clean up branches of a remote repository.
 10. $ git branch -d hotfix # git branch --delete hotfix or git branch -D hotfix
 11. $ git push origin :hotfix # git push origin --delete hotfix
 
-# tagging commands
+# tagging commands 1
 $ git tag # show all tags.
 $ git tag -l v1.0.* # show specified tags.
 $ git tag v1.0.0 # create a new lightweight tag.
@@ -88,8 +88,13 @@ $ git push origin --tags # push all tags to a remote repository.
 $ git tag -d v1.0.0 # delete the tag from a local repository.
 $ git push origin :v1.0.0 # delete the tag from a remote repository.
 
+# tagging commands 2
+$ git checkout <tag> # switch a working <tag>.
+$ git checkout tags/<tag> # same as the above.
+$ git checkout <tag> -b <branch> # create a new <branch> and switch a working <tag>.
+$ git checkout tags/<tag> -b <branch> # same as the above.
+
 # retrack all files
 $ git rm -r --cached .
 $ git add .
 $ git commit -m "message"
-
