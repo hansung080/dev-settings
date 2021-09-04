@@ -37,10 +37,11 @@ $ git remote -v # show connection between a local repository and a remote reposi
 $ git remote add origin <url> # connect a local repository to a remote repository identified by <url> and alias it origin.
 $ git remote remove origin # remove a remote repository with the alias, origin
 $ git remote set-url origin <url> # change connection to a remote repository identified by <url>
+$ git branch --set-upstream-to=origin/<branch> <branch> # set <branch> to track origin/<branch>.
 $ git push origin <branch> # push commits of <branch> to origin.
 $ git push origin --all # push commits of all branches to origin.
-$ git push -u origin <branch> # push commits of <branch> to origin, when <branch> of origin dose not exists.
-$ git push --set-upstream origin <branch> # push commits of <branch> to origin, when <branch> of origin dose not exists.
+$ git push -u origin <branch> # push commits of <branch> to origin and set <branch> to track origin/<branch>.
+$ git push --set-upstream origin <branch> # push commits of <branch> to origin and set <branch> to track origin/<branch>.
 $ git pull origin <branch> # pull commits of origin to <branch>. (pull = fetch + merge)
 $ git fetch # fetch commits of origin to branches. (No merge. Use <git merge origin/branch> command to merge after fetch)
 $ git diff <branch> # show differences between <branch> and origin/<branch>.
