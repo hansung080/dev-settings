@@ -2,7 +2,7 @@
 
 " Syntax Highlighting
 if has("syntax")
-    syn on
+  syn on
 endif
 
 " Basic Settings
@@ -31,7 +31,7 @@ set statusline=\ %<%l:%v\ [%P]%=%a\ %h%m%r\ %F
 
 " File Encoding for Korean
 if $LANG[0] == 'k' && $LANG[1] == 'o'
-    set fileencoding=korea
+  set fileencoding=korea
 endif
 
 " Syntax Highlighting for Go
