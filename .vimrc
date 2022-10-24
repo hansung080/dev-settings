@@ -35,5 +35,5 @@ if $LANG[0] == 'k' && $LANG[1] == 'o'
 endif
 
 " Syntax Highlighting for Go
-filetype on
-au BufRead,BufNewFile *.go set filetype=go
+"filetype on
+"au BufRead,BufNewFile *.go set filetype=go
