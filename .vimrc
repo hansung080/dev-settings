@@ -19,21 +19,21 @@ set incsearch
 set wrap
 set smartcase
 
-" Put cursor position at the last open cursor position.
+" Move the cursor to the cursor's position of the last open file.
 au BufReadPost *
 \ if line("'\"") > 0 && line("'\"") <= line("$") |
 \ exe "norm g`\"" |
 \ endif
 
-" Show current cursor position.
+" Show the current cursor's position.
 set laststatus=2
 set statusline=\ %<%l:%v\ [%P]%=%a\ %h%m%r\ %F
 
-" Korean File Encoding
+" File Encoding for Korean
 if $LANG[0] == 'k' && $LANG[1] == 'o'
     set fileencoding=korea
 endif
 
-" Syntax Highlighting for GO
+" Syntax Highlighting for Go
 filetype on
 au BufRead,BufNewFile *.go set filetype=go
