@@ -9,8 +9,8 @@ $ curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.vimrc'
 ```
 
 ## Shell
-### Download .zshrc
+### Download .hutils.sh
 ```sh
 $ cd ~
-$ curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.zshrc' -o '.zshrc'
+$ curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.hutils.sh' -o '.hutils.sh'
 ```

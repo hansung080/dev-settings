@@ -1,5 +1,3 @@
-# .zshrc
-
 SHELL_NAME="$(ps -p $$ | tail -1 | awk '{ print $4 }')"
 if [[ "${SHELL_NAME:0:1}" == "-" ]]; then
   SHELL_NAME="${SHELL_NAME:1}"
@@ -113,51 +111,3 @@ int main(int argc, char* argv[]) {
 }"
   echo "$content"
 }
-
-setopt PROMPT_SUBST
-#PROMPT='%(!.%F{red}.%F{cyan})%n%f@%F{yellow}%m%f:%{$(pwd|grep --color=always /)%${#PWD}G%}%(!.%F{red}.)%#%f '
-#PROMPT='%F{red}%n%f@%{$(pwd|grep --color=always /)%${#PWD}G%}%# '
-PROMPT='%n@%{$(pwd)%${#PWD}G%}%# '
-
-# General Aliases
-alias ll='ls -alF'
-alias work='cd /Users/hansung/work'
-alias ws='cd /Users/hansung/work/ws'
-
-WORK_HOME="/Users/hansung/work"
-export PATH="$PATH:$WORK_HOME/bin"
-
-HOMEBREW_HOME="/opt/homebrew"
-export PATH="$PATH:$HOMEBREW_HOME/bin"
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-export JAVA_HOME="/Users/hansung/.sdkman/candidates/java/8.0.352-zulu/zulu-8.jdk/Contents/Home"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# Use the following version of Node.js.
-nvm use 18.12.1 > /dev/null
-
-export GVM_DIR="$HOME/.gvm"
-[[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
-
-#export GOROOT="/usr/local/go/current"
-#export GOPATH="/Users/hansung/work/ws/go/system"
-export GOBIN="$GOPATH/bin"
-export GO111MODULE="on" # for go1.11 ~ go1.15
-#export PATH="$PATH:$GOROOT/bin"
-#export PATH="$PATH:$GOPATH/bin"
-
-alias goenv='go env | grep GOROOT; go env | grep GOPATH; go env | grep GOBIN; go env | grep GO111MODULE'
-
-export RUSTUP_HOME="/Users/hansung/.rustup"
-export CARGO_HOME="/Users/hansung/.cargo"
-[[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-
-deduplicate_path
-
-[ ! -z "$PS1" ] && echo '.zshrc'

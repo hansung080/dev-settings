@@ -1,5 +1,3 @@
-" .vimrc
-
 " Syntax Highlighting
 if has("syntax")
   syn on
