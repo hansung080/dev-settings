@@ -98,7 +98,7 @@ make_new() {
 
   local project="$1"
   mkdir -p "$project/src" "$project/test"
-  curl -fsSL https://raw.githubusercontent.com/hansung080/study/master/c/examples/hello-make/Makefile | sed "s/hello-make/$project/g" > "$project/Makefile"
+  curl -fsSL 'https://raw.githubusercontent.com/hansung080/study/master/c/examples/hello-make/Makefile' | sed "s/hello-make/$project/g" > "$project/Makefile"
   print_c_main "$project" > "$project/src/main.c"
   print_c_main "$project-test" > "$project/test/main.c"
 }
