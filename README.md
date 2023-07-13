@@ -7,3 +7,10 @@ Various things and stuff.
 $ cd ~
 $ curl -fsSL https://raw.githubusercontent.com/hansung080/assets/master/.vimrc -o .vimrc
 ```
+
+## Shell
+### Download .zshrc
+```sh
+$ cd ~
+$ curl -fsSL https://raw.githubusercontent.com/hansung080/assets/master/.zshrc -o .zshrc
+```
