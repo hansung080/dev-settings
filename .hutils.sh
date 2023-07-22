@@ -111,3 +111,5 @@ int main(int argc, char* argv[]) {
 }"
   echo "$content"
 }
+
+alias makev='make __verbose=true'
