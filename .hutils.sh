@@ -136,6 +136,8 @@ make_new() {
   print_c_main "$project-test" > "$project/test/main.c"
   if [[ "$type" == "bin" ]]; then
     print_c_main "$project" > "$project/src/main.c"
+  else
+    touch "$project/src/lib.c"
   fi
 }
 
