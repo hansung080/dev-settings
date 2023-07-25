@@ -108,7 +108,7 @@ make_check_args() {
     echo "$usage"
     return 1
   fi
-  retrn 0
+  return 0
 }
 
 print_c_main() {
