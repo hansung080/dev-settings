@@ -12,5 +12,5 @@ curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.vimrc' -
 ### Download .hutils.sh
 To download `.hutils.sh` at the home directory, run:
 ```sh
-$ curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.hutils.sh' -o '~/.hutils.sh'
+curl -fsSL 'https://raw.githubusercontent.com/hansung080/assets/master/.hutils.sh' -o '~/.hutils.sh'
 ```
