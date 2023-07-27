@@ -66,7 +66,7 @@ h_deduplicate_path() {
   PATH=''
   local p
   for p in ${original_path[@]}; do
-    add_path "$p"
+    h_add_path "$p"
   done
 }
 
