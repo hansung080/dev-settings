@@ -1,13 +1,9 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
-source "$H_ANYSH_DIR/.h-source.sh"
+source "$H_ANYSH_DIR/hidden/h-source.sh"
 h_source 'util'
 
-# Feature Type Recognized by Filename
-# 1. feature on     : [0-9][0-9]*.sh
-# 2. feature off    : .[0-9]*.sh
-# 3. hidden feature : .h*.sh
-
 H_ANYSH_VERSION='1.0.0'
+H_FEATURES_DIR="$H_ANYSH_DIR/features"
 
 h_is_anysh_sourced() {
   return 0
@@ -16,7 +12,7 @@ h_is_anysh_sourced() {
 h_anysh_ls() {
   local IFS=$'\n'
   local file files=() sep=':' max=0 len
-  for file in $(find "$H_ANYSH_DIR" -type f -name '[0-9.][0-9]*.sh' -exec basename {} +); do
+  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh' -exec basename {} +); do
     file="${file%.sh}"
     if [[ "${file:0:1}" == '.' ]]; then
       files+=("${file#.}${sep}off")
@@ -53,7 +49,7 @@ h_anysh_ls_remote() {
 h_anysh_on() {
   local IFS=$'\n'
   local target="$1" file base name
-  for file in $(find "$H_ANYSH_DIR" -type f -name '[0-9.][0-9]*.sh'); do
+  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"
@@ -74,7 +70,7 @@ h_anysh_on() {
 h_anysh_off() {
   local IFS=$'\n'
   local target="$1" file base name
-  for file in $(find "$H_ANYSH_DIR" -type f -name '[0-9.][0-9]*.sh'); do
+  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"

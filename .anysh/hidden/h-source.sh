@@ -1,4 +1,5 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+H_FEATURES_DIR="$H_ANYSH_DIR/features"
 __H_SOURCE_FILES=()
 
 __h_source_one() {
@@ -6,7 +7,7 @@ __h_source_one() {
   local reset=$'\033[0m' red_bold=$'\033[1;31m' yellow=$'\033[0;33m'
   local target="$1" file base name
   if ! h_is_"$target"_sourced 2> /dev/null; then
-    ((${#__H_SOURCE_FILES[@]} == 0)) && __H_SOURCE_FILES=($(find "$H_ANYSH_DIR" -type f -name '[0-9.][0-9]*.sh'))
+    ((${#__H_SOURCE_FILES[@]} == 0)) && __H_SOURCE_FILES=($(find "$H_FEATURES_DIR" -type f -name '*.sh'))
     for file in "${__H_SOURCE_FILES[@]}"; do
       base="$(basename "$file")"
       name="${base#*-}"
