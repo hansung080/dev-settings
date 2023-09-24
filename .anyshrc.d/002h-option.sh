@@ -1,14 +1,8 @@
-h_is_gnu_getopt() {
-  command getopt -T > /dev/null
-  [ $? -eq 4 ]
-}
+: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+source "$H_ANYSH_DIR/.h-source.sh"
+h_source 'util'
 
-h_check_gnu_getopt() {
-  if ! h_is_gnu_getopt; then
-    h_error -t 'GNU getopt not installed on your system'
-    h_is_mac && h_error 'To install gnu-getopt on macOS, run: brew install gnu-getopt'
-    return 1
-  fi
+h_is_option_sourced() {
   return 0
 }
 
@@ -78,38 +72,38 @@ h_get_lopts() {
 }
 
 h_get_options_usage() {
-  h_error "usage: Run 'h_get_options -h' for the usage."
+  h_error "Run 'h_get_options -h' for more information on the usage."
 }
 
 h_get_options_help() {
   h_echo 'Usage:'
-  h_echo ' h_get_options [options...] [--] <arguments...>'
+  h_echo '  h_get_options [<options...>] [--] [<arguments...>]'
   h_echo
   h_echo 'Options:'
-  h_echo ' -h                    display this help'
-  h_echo ' -l <long-optstring>   the long options to be recognized'
-  h_echo ' -o <short-optstring>  the short options to be recognized'
-  h_echo ' -V                    display version'
+  h_echo '  -o <optstring>  Specify the short options to be recognized'
+  h_echo '  -l <optstring>  Specify the long options to be recognized'
+  h_echo '  -V              Display the version of h_get_options'
+  h_echo '  -h              Display this help message'
 }
 
 h_get_options() {
-  local opt='' OPTIND=1 OPTARG='' lopts='' sopts=''
-  while getopts ':hl:o:V' opt; do
+  local opt='' OPTIND=1 OPTARG='' sopts='' lopts=''
+  while getopts ':o:l:Vh' opt; do
     case "$opt" in
-      'h')
-        h_get_options_help
-        return 0
+      'o')
+        h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
+        sopts="$OPTARG"
         ;;
       'l')
-        h_check_optarg "-$opt" "$OPTARG" get_options_usage || return 2
+        h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
         lopts="$OPTARG"
-        ;;
-      'o')
-        h_check_optarg "-$opt" "$OPTARG" get_options_usage || return 2
-        sopts="$OPTARG"
         ;;
       'V')
         h_echo 'h_get_options v1.0.0 for bash'
+        return 0
+        ;;
+      'h')
+        h_get_options_help
         return 0
         ;;
       '?')
@@ -183,6 +177,20 @@ h_get_options() {
   fi
 
   h_echo "$out"
+}
+
+h_is_gnu_getopt() {
+  command getopt -T > /dev/null
+  [ $? -eq 4 ]
+}
+
+h_check_gnu_getopt() {
+  if ! h_is_gnu_getopt; then
+    h_error -t 'GNU getopt not installed on your system'
+    h_is_mac && h_error 'To install gnu-getopt on macOS, run: brew install gnu-getopt'
+    return 1
+  fi
+  return 0
 }
 
 getopt() {

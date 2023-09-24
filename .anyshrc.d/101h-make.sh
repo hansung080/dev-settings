@@ -1,3 +1,11 @@
+: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+source "$H_ANYSH_DIR/.h-source.sh"
+h_source 'util'
+
+h_is_make_sourced() {
+  return 0
+}
+
 h_make_check_args() {
   local project="$1"
   local type="$2"
@@ -17,7 +25,7 @@ h_make_check_args() {
   return 0
 }
 
-h_c_main() {
+h_make_c_main() {
   local content="\
 #include <stdio.h>
 
@@ -39,9 +47,9 @@ h_make_new() {
   local makefile="$type.mk"
   curl -fsSL "https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/$makefile" | sed "s/make-sample/$project/g" > "$project/$makefile"
   curl -fsSL 'https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/project.mk' | sed "s/bin\.mk/$makefile/g" > "$project/Makefile"
-  h_c_main "$project-test" > "$project/test/main.c"
+  h_make_c_main "$project-test" > "$project/test/main.c"
   if [[ "$type" == 'bin' ]]; then
-    h_c_main "$project" > "$project/src/main.c"
+    h_make_c_main "$project" > "$project/src/main.c"
   else
     touch "$project/src/lib.c"
   fi

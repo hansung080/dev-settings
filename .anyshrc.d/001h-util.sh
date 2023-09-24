@@ -1,9 +1,15 @@
 H_RESET=$'\033[0m'
+H_BLACK=$'\033[0;30m'
+H_BLACK_BOLD=$'\033[1;30m'
 H_RED=$'\033[0;31m'
 H_RED_BOLD=$'\033[1;31m'
 H_GREEN=$'\033[0;32m'
 H_YELLOW=$'\033[0;33m'
 H_BLUE=$'\033[0;34m'
+
+h_is_util_sourced() {
+  return 0
+}
 
 h_is_bash() {
   [ -n "${BASH_VERSION}" ]
@@ -49,6 +55,14 @@ h_shell_name() {
   fi
 }
 
+h_repeat() {
+  local i out
+  for ((i == 0; i < $2; ++i)); do
+    out+="$1"
+  done
+  h_echo "$out"
+}
+
 h_split_by() {
   if h_is_zsh; then
     eval "${3:-$2}"='("${(@s/'"$1"'/)'"$2"'}")'
@@ -69,19 +83,19 @@ h_join_elems_by() {
 }
 
 h_in_array() {
-  local target="$1" e
+  local target="$1" elem
   eval set -- '"${'"$2"'[@]}"'
-  for e in "$@"; do
-    [[ "$e" == "$target" ]] && return 0
+  for elem in "$@"; do
+    [[ "$elem" == "$target" ]] && return 0
   done
   return 1
 }
 
 h_in_elems() {
-  local target="$1" e
+  local target="$1" elem
   shift
-  for e in "$@"; do
-    [[ "$e" == "$target" ]] && return 0
+  for elem in "$@"; do
+    [[ "$elem" == "$target" ]] && return 0
   done
   return 1
 }
@@ -136,7 +150,9 @@ h_path() {
   done
 }
 
-h_style_test() {
+h_test_style() {
+  h_echo "${H_BLACK}black${H_RESET}"
+  h_echo "${H_BLACK_BOLD}black bold${H_RESET}"
   h_echo "${H_RED}red${H_RESET}"
   h_echo "${H_RED_BOLD}red bold${H_RESET}"
   h_echo "${H_GREEN}green${H_RESET}"
