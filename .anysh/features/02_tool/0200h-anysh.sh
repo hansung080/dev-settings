@@ -9,10 +9,18 @@ h_is_anysh_sourced() {
   return 0
 }
 
+h_anysh_get_features() {
+  find "$H_FEATURES_DIR" -type f -name '*.sh'
+}
+
+h_anysh_get_features_basename() {
+  find "$H_FEATURES_DIR" -type f -name '*.sh' -exec basename {} +
+}
+
 h_anysh_ls() {
   local IFS=$'\n'
   local file files=() sep=':' max=0 len
-  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh' -exec basename {} +); do
+  for file in $(h_anysh_get_features_basename); do
     file="${file%.sh}"
     if [[ "${file:0:1}" == '.' ]]; then
       files+=("${file#.}${sep}off")
@@ -49,7 +57,7 @@ h_anysh_ls_remote() {
 h_anysh_on() {
   local IFS=$'\n'
   local feature="$1" file base name
-  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
+  for file in $(h_anysh_get_features); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"
@@ -70,7 +78,7 @@ h_anysh_on() {
 h_anysh_off() {
   local IFS=$'\n'
   local feature="$1" file base name
-  for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
+  for file in $(h_anysh_get_features); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"
