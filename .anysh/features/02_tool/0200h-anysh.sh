@@ -48,43 +48,43 @@ h_anysh_ls_remote() {
 
 h_anysh_on() {
   local IFS=$'\n'
-  local target="$1" file base name
+  local feature="$1" file base name
   for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"
-    if [[ "$name" == "$target" ]]; then
+    if [[ "$name" == "$feature" ]]; then
       if [[ "${base:0:1}" == '.' ]]; then
         mv "$file" "$(dirname "$file")/${base#.}"
-        h_echo "$target is turned on"
+        h_echo "$feature is turned on"
       else
-        h_echo "$target is already on"
+        h_echo "$feature is already on"
       fi
       return 0
     fi
   done
-  h_error -t "$target not found"
+  h_error -t "$feature not found"
   return 1
 }
 
 h_anysh_off() {
   local IFS=$'\n'
-  local target="$1" file base name
+  local feature="$1" file base name
   for file in $(find "$H_FEATURES_DIR" -type f -name '*.sh'); do
     base="$(basename "$file")"
     name="${base#*-}"
     name="${name%.sh}"
-    if [[ "$name" == "$target" ]]; then
+    if [[ "$name" == "$feature" ]]; then
       if [[ "${base:0:1}" == '.' ]]; then
-        h_echo "$target is already off"
+        h_echo "$feature is already off"
       else
         mv "$file" "$(dirname "$file")/.$base"
-        h_echo "$target is turned off"
+        h_echo "$feature is turned off"
       fi
       return 0
     fi
   done
-  h_error -t "$target not found"
+  h_error -t "$feature not found"
   return 1
 }
 
