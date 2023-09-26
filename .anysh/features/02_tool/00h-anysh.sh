@@ -35,11 +35,11 @@ h_anysh_ls() {
     fi
   done
 
-  local name n state style
+  local fname n state style
   for file in $(h_echo "${files[*]}" | sort); do
     file="${file#*-}"
-    name="${file%$sep*}"
-    ((n = max - ${#name} + 2))
+    fname="${file%$sep*}"
+    ((n = max - ${#fname} + 2))
     state="${file##*$sep}"
     if [[ "$state" == 'on' ]]; then
       style="$H_BLUE"
@@ -56,12 +56,12 @@ h_anysh_ls_remote() {
 
 h_anysh_on() {
   local IFS=$'\n'
-  local feature="$1" file base name
+  local feature="$1" file base fname
   for file in $(h_anysh_get_features); do
     base="$(basename "$file")"
-    name="${base#*-}"
-    name="${name%.sh}"
-    if [[ "$name" == "$feature" ]]; then
+    fname="${base#*-}"
+    fname="${fname%.sh}"
+    if [[ "$fname" == "$feature" ]]; then
       if [[ "${base:0:1}" == '.' ]]; then
         mv "$file" "$(dirname "$file")/${base#.}"
         h_echo "$feature is turned on"
@@ -77,12 +77,12 @@ h_anysh_on() {
 
 h_anysh_off() {
   local IFS=$'\n'
-  local feature="$1" file base name
+  local feature="$1" file base fname
   for file in $(h_anysh_get_features); do
     base="$(basename "$file")"
-    name="${base#*-}"
-    name="${name%.sh}"
-    if [[ "$name" == "$feature" ]]; then
+    fname="${base#*-}"
+    fname="${fname%.sh}"
+    if [[ "$fname" == "$feature" ]]; then
       if [[ "${base:0:1}" == '.' ]]; then
         h_echo "$feature is already off"
       else

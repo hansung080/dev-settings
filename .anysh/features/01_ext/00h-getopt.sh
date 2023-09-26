@@ -2,7 +2,7 @@
 source "$H_ANYSH_DIR/hidden/h-source.sh"
 h_source 'util'
 
-h_is_option_sourced() {
+h_is_getopt_sourced() {
   return 0
 }
 
