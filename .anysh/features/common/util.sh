@@ -7,10 +7,6 @@ H_GREEN=$'\033[0;32m'
 H_YELLOW=$'\033[0;33m'
 H_BLUE=$'\033[0;34m'
 
-h_is_util_sourced() {
-  return 0
-}
-
 h_is_debug() {
   [ -n "$H_DEBUG" ]
 }
@@ -63,14 +59,6 @@ h_shell_name() {
   fi
 }
 
-h_repeat() {
-  local i out
-  for ((i == 0; i < $2; ++i)); do
-    out+="$1"
-  done
-  h_echo "$out"
-}
-
 h_split_by() {
   if h_is_zsh; then
     eval "${3:-$2}"='("${(@s/'"$1"'/)'"$2"'}")'
@@ -106,6 +94,14 @@ h_in_elems() {
     [[ "$elem" == "$target" ]] && return 0
   done
   return 1
+}
+
+h_repeat() {
+  local i out
+  for ((i == 0; i < $2; ++i)); do
+    out+="$1"
+  done
+  h_echo "$out"
 }
 
 h_test_style() {

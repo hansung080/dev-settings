@@ -1,10 +1,6 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
-source "$H_ANYSH_DIR/hidden/h-source.sh"
+source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
-
-h_is_getopt_sourced() {
-  return 0
-}
 
 h_check_optarg() {
   if [[ "$2" == -* ]]; then

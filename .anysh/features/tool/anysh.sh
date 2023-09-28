@@ -1,26 +1,46 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
-source "$H_ANYSH_DIR/hidden/h-source.sh"
+source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
 H_ANYSH_VERSION='1.0.0'
 H_FEATURES_DIR="$H_ANYSH_DIR/features"
 
-h_is_anysh_sourced() {
-  return 0
+h_anysh_get_groups() {
+  find "$H_FEATURES_DIR" -depth 1 -type d -exec basename {} +
+}
+
+h_anysh_in_groups() {
+  count="$(find "$H_FEATURES_DIR" -depth 1 -type d -name "$1" | wc -l | awk '{ print $1 }')"
+  ((count > 0))
 }
 
 h_anysh_get_features() {
-  find "$H_FEATURES_DIR" -type f -name '*.sh'
-}
-
-h_anysh_get_features_basename() {
-  find "$H_FEATURES_DIR" -type f -name '*.sh' -exec basename {} +
+  local target="$1"
+  if [ -z "$target" ]; then
+    find "$H_FEATURES_DIR" -type f -name '*.sh' -exec bash -c "x='{}'; echo \"\${x#$H_FEATURES_DIR/}\"" \;
+  elif [[ "${target:0:1}" == ':' ]]; then
+    target="${target:1}"
+    if ! h_anysh_in_groups "$target"; then
+      h_error -t "invalid group: $target"
+      return 1
+    fi
+    find "$H_FEATURES_DIR/$target" -type f -name '*.sh' -exec bash -c "x='{}'; echo \"\${x#$H_FEATURES_DIR/}\"" \;
+  else
+    # khs working here...
+    # Consider to change the invalid group error just like the invalid feature error
+    # Reference: https://unix.stackexchange.com/questions/198254/make-find-fail-when-nothing-was-found
+    find "$H_FEATURES_DIR" -type f \( -name "$target.sh" -o -name ".$target.sh" \) -exec bash -c "x='{}'; echo \"\${x#$H_FEATURES_DIR/}\"" \; | grep '.'
+    if [ $? -ne 0 ]; then
+      h_error -t "invalid feature: $target"
+      return 1
+    fi
+  fi
 }
 
 h_anysh_ls() {
   local IFS=$'\n'
   local file files=() sep=':' max=0 len
-  for file in $(h_anysh_get_features_basename); do
+  for file in $(h_anysh_find_features_basename); do
     file="${file%.sh}"
     if [[ "${file:0:1}" == '.' ]]; then
       files+=("${file#.}${sep}off")
@@ -57,7 +77,7 @@ h_anysh_ls_remote() {
 h_anysh_on() {
   local IFS=$'\n'
   local feature="$1" file base fname
-  for file in $(h_anysh_get_features); do
+  for file in $(h_anysh_find_features); do
     base="$(basename "$file")"
     fname="${base#*-}"
     fname="${fname%.sh}"
@@ -78,7 +98,7 @@ h_anysh_on() {
 h_anysh_off() {
   local IFS=$'\n'
   local feature="$1" file base fname
-  for file in $(h_anysh_get_features); do
+  for file in $(h_anysh_find_features); do
     base="$(basename "$file")"
     fname="${base#*-}"
     fname="${fname%.sh}"
