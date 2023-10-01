@@ -1,5 +1,5 @@
 # Dev Settings
-Useful configs and tools for development environment settings
+Useful configs for development environment settings
 
 ## Download .vimrc
 To download `.vimrc` at your home directory, run:
