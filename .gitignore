@@ -224,5 +224,8 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,intellij+all,visualstudiocode,sublimetext
 
 # Added by hansung
-# My Make, Gradle
+
+# Make Kit
 build/
+
+# End of hansung
